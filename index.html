@@ -1,0 +1,536 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PRAXIS</title>
+  <style>
+    :root {
+      --bg: #f7f7f5;
+      --surface: #ffffff;
+      --text: #1f1f1f;
+      --muted: #6b6b6b;
+      --border: #e7e7e7;
+      --accent: #1f1f1f;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.5;
+    }
+
+    .app {
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      padding: 24px;
+    }
+
+    .card {
+      width: 100%;
+      max-width: 680px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 24px;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: 1.8rem;
+      letter-spacing: 0.02em;
+    }
+
+    .subtitle {
+      margin: 8px 0 20px;
+      color: var(--muted);
+      font-size: 0.98rem;
+    }
+
+    label {
+      display: block;
+      font-weight: 600;
+      margin-bottom: 8px;
+    }
+
+    textarea {
+      width: 100%;
+      min-height: 140px;
+      resize: vertical;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 12px;
+      font: inherit;
+      color: var(--text);
+      background: #fff;
+    }
+
+    textarea:focus {
+      outline: 2px solid #d7d7d7;
+      outline-offset: 1px;
+    }
+
+    button {
+      margin-top: 14px;
+      border: none;
+      border-radius: 10px;
+      padding: 11px 16px;
+      background: var(--accent);
+      color: #fff;
+      font: inherit;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    button:hover {
+      opacity: 0.92;
+    }
+
+    .result {
+      margin-top: 22px;
+      border-top: 1px solid var(--border);
+      padding-top: 18px;
+      display: none;
+      gap: 12px;
+    }
+
+    .result.visible {
+      display: grid;
+    }
+
+    .item {
+      padding: 12px;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      background: #fcfcfc;
+    }
+
+    .item strong {
+      display: block;
+      margin-bottom: 4px;
+      font-size: 0.92rem;
+      color: #3b3b3b;
+    }
+
+    .row {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-top: 10px;
+    }
+
+    .row button {
+      margin-top: 0;
+      padding: 8px 12px;
+      font-size: 0.9rem;
+    }
+
+    .history {
+      margin-top: 22px;
+      border-top: 1px solid var(--border);
+      padding-top: 18px;
+      display: grid;
+      gap: 10px;
+    }
+
+    .history h2 {
+      margin: 0 0 2px;
+      font-size: 1.1rem;
+    }
+
+    .history-item {
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      background: #fcfcfc;
+      padding: 12px;
+    }
+
+    .history-item p {
+      margin: 0 0 8px;
+      font-size: 0.95rem;
+    }
+
+    .history-meta {
+      color: var(--muted);
+      font-size: 0.86rem;
+      margin-top: 8px;
+    }
+
+    .status {
+      display: inline-block;
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      padding: 2px 8px;
+      font-size: 0.78rem;
+      color: #4a4a4a;
+      margin-bottom: 8px;
+    }
+
+    .history-empty {
+      color: var(--muted);
+      font-size: 0.95rem;
+      margin: 0;
+    }
+
+    .upcoming-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .upcoming-box {
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 12px;
+      background: #fcfcfc;
+    }
+
+    .upcoming-box h3 {
+      margin: 0 0 10px;
+      font-size: 0.92rem;
+    }
+
+    .upcoming-box p {
+      margin: 0 0 8px;
+      font-size: 0.9rem;
+    }
+
+    .tag {
+      display: inline-block;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      padding: 2px 8px;
+      font-size: 0.78rem;
+      margin-right: 6px;
+      margin-top: 4px;
+      color: #5a5a5a;
+    }
+
+    @media (max-width: 640px) {
+      .app {
+        padding: 14px;
+      }
+
+      .card {
+        padding: 16px;
+        border-radius: 12px;
+      }
+
+      h1 {
+        font-size: 1.45rem;
+      }
+
+      textarea {
+        min-height: 120px;
+      }
+
+      button {
+        width: 100%;
+      }
+
+      .upcoming-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="app">
+    <section class="card">
+      <h1>PRAXIS</h1>
+      <p class="subtitle">Transformar conhecimento em ação prática.</p>
+
+      <label for="learnedInput">O que você aprendeu?</label>
+      <textarea id="learnedInput" placeholder="Ex.: Aprendi que dividir tarefas grandes em blocos de 25 minutos melhora meu foco."></textarea>
+      <button id="transformBtn" type="button">Transformar em Ação</button>
+
+      <div id="result" class="result" aria-live="polite">
+        <div class="item">
+          <strong>Ação prática simples</strong>
+          <span id="actionText"></span>
+        </div>
+        <div class="item">
+          <strong>Prazo</strong>
+          <span id="deadlineText"></span>
+        </div>
+        <div class="item">
+          <strong>Regra de execução mínima</strong>
+          <span id="ruleText"></span>
+        </div>
+        <div class="item" id="tagsWrap" style="display: none;">
+          <strong>Tags</strong>
+          <div id="tagsText"></div>
+        </div>
+      </div>
+
+      <section class="history">
+        <h2>Histórico</h2>
+        <div id="historyList"></div>
+      </section>
+
+      <section class="history">
+        <h2>Próximos prazos (24h/7d)</h2>
+        <div class="upcoming-grid">
+          <div class="upcoming-box">
+            <h3>Nas próximas 24h</h3>
+            <div id="upcoming24"></div>
+          </div>
+          <div class="upcoming-box">
+            <h3>Nos próximos 7 dias</h3>
+            <div id="upcoming7d"></div>
+          </div>
+        </div>
+      </section>
+    </section>
+  </main>
+
+  <script>
+    const learnedInput = document.getElementById('learnedInput');
+    const transformBtn = document.getElementById('transformBtn');
+    const result = document.getElementById('result');
+    const actionText = document.getElementById('actionText');
+    const deadlineText = document.getElementById('deadlineText');
+    const ruleText = document.getElementById('ruleText');
+    const tagsWrap = document.getElementById('tagsWrap');
+    const tagsText = document.getElementById('tagsText');
+    const historyList = document.getElementById('historyList');
+    const upcoming24 = document.getElementById('upcoming24');
+    const upcoming7d = document.getElementById('upcoming7d');
+
+    function sanitizeText(text) {
+      return text.replace(/\s+/g, ' ').trim();
+    }
+
+    function escapeHtml(text) {
+      return text
+        .replaceAll('&', '&amp;')
+        .replaceAll('<', '&lt;')
+        .replaceAll('>', '&gt;')
+        .replaceAll('"', '&quot;')
+        .replaceAll("'", '&#39;');
+    }
+
+    async function loadHistory() {
+      try {
+        const res = await fetch('/api/history');
+        if (!res.ok) {
+          throw new Error('Falha ao carregar histórico');
+        }
+
+        const items = await res.json();
+        if (!items.length) {
+          historyList.innerHTML = '<p class="history-empty">Nenhum item ainda.</p>';
+          return;
+        }
+
+        historyList.innerHTML = items
+          .map((item) => {
+            const remindInputId = `remind-${item.id}`;
+            const acao = item.acao || item.acao_pratica || '';
+            const prazo = item.prazo || item.prazo_humano || '';
+            const regra = item.regraMinima || item.regra_minima || '';
+            const isDone = item.status === 'feito' || item.status === 'concluido';
+            return `
+              <article class="history-item">
+                <span class="status">${item.status}</span>
+                <p><strong>Aprendizado:</strong> ${escapeHtml(item.texto)}</p>
+                <p><strong>Ação:</strong> ${escapeHtml(acao)}</p>
+                <p><strong>Prazo:</strong> ${escapeHtml(prazo)}</p>
+                <p><strong>Regra mínima:</strong> ${escapeHtml(regra)}</p>
+                <div class="row">
+                  <button type="button" data-action="complete" data-id="${item.id}" ${isDone ? 'disabled' : ''}>
+                    ${isDone ? 'Feito' : 'Concluir'}
+                  </button>
+                  <input id="${remindInputId}" type="datetime-local" />
+                  <button type="button" data-action="remind" data-id="${item.id}" data-input-id="${remindInputId}">Criar lembrete</button>
+                  <button type="button" data-action="remind-browser" data-id="${item.id}" data-input-id="${remindInputId}">Lembrete no navegador</button>
+                </div>
+                <div class="history-meta">Criado em ${escapeHtml(item.created_at)}</div>
+              </article>
+            `;
+          })
+          .join('');
+      } catch (error) {
+        historyList.innerHTML = '<p class="history-empty">Erro ao carregar histórico.</p>';
+      }
+    }
+
+    async function loadUpcoming(windowValue, targetEl) {
+      try {
+        const res = await fetch(`/api/upcoming?window=${windowValue}`);
+        if (!res.ok) {
+          throw new Error('Falha ao carregar próximos prazos');
+        }
+
+        const data = await res.json();
+        const items = Array.isArray(data.items) ? data.items : [];
+        if (!items.length) {
+          targetEl.innerHTML = '<p class="history-empty">Sem prazos no período.</p>';
+          return;
+        }
+
+        targetEl.innerHTML = items
+          .slice(0, 5)
+          .map((item) => {
+            const prazo = item.prazo || item.prazo_humano || '';
+            const acao = item.acao || item.acao_pratica || '';
+            return `<p><strong>${escapeHtml(prazo)}</strong><br>${escapeHtml(acao)}</p>`;
+          })
+          .join('');
+      } catch (_error) {
+        targetEl.innerHTML = '<p class="history-empty">Erro ao carregar.</p>';
+      }
+    }
+
+    async function createReminder(itemId, inputId, channel) {
+      const input = document.getElementById(inputId);
+      if (!input || !input.value) {
+        alert('Escolha data e hora para o lembrete.');
+        return;
+      }
+
+      const remindAtIso = new Date(input.value).toISOString();
+      const res = await fetch(`/api/remind/${itemId}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ remind_at_iso: remindAtIso, channel })
+      });
+
+      if (!res.ok) {
+        alert('Não foi possível criar o lembrete.');
+        return;
+      }
+
+      alert(`Lembrete (${channel}) criado com sucesso.`);
+    }
+
+    transformBtn.addEventListener('click', async () => {
+      const learned = sanitizeText(learnedInput.value);
+
+      if (!learned) {
+        result.classList.add('visible');
+        actionText.textContent = 'Escreva um aprendizado específico para gerar uma ação.';
+        deadlineText.textContent = 'Defina em seguida um prazo de até 48 horas.';
+        ruleText.textContent = 'Comece com a menor versão possível (3 minutos).';
+        return;
+      }
+
+      transformBtn.disabled = true;
+      transformBtn.textContent = 'Gerando...';
+
+      try {
+        const res = await fetch('/api/praxis', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ texto: learned })
+        });
+
+        if (!res.ok) {
+          throw new Error('Falha ao gerar ação');
+        }
+
+        const data = await res.json();
+        actionText.textContent = data.acao || data.acao_pratica || '';
+        deadlineText.textContent = data.prazo;
+        ruleText.textContent = data.regraMinima || data.regra_minima || '';
+
+        if (Array.isArray(data.tags) && data.tags.length) {
+          tagsWrap.style.display = 'block';
+          tagsText.innerHTML = data.tags.map((tag) => `<span class="tag">${escapeHtml(tag)}</span>`).join('');
+        } else {
+          tagsWrap.style.display = 'none';
+          tagsText.innerHTML = '';
+        }
+
+        result.classList.add('visible');
+        learnedInput.value = '';
+        await loadHistory();
+        await Promise.all([loadUpcoming('24h', upcoming24), loadUpcoming('7d', upcoming7d)]);
+      } catch (error) {
+        actionText.textContent = 'Não foi possível gerar a ação agora.';
+        deadlineText.textContent = 'Tente novamente em instantes.';
+        ruleText.textContent = 'Mantenha uma versão mínima de 3 minutos.';
+        tagsWrap.style.display = 'none';
+        tagsText.innerHTML = '';
+        result.classList.add('visible');
+      } finally {
+        transformBtn.disabled = false;
+        transformBtn.textContent = 'Transformar em Ação';
+      }
+    });
+
+    historyList.addEventListener('click', async (event) => {
+      const target = event.target;
+      if (!(target instanceof HTMLButtonElement)) {
+        return;
+      }
+
+      const action = target.dataset.action;
+      const itemId = target.dataset.id;
+      const inputId = target.dataset.inputId;
+
+      if (!action || !itemId) {
+        return;
+      }
+
+      if (action === 'complete') {
+        const res = await fetch(`/api/history/${itemId}`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ status: 'feito' })
+        });
+        if (!res.ok) {
+          alert('Não foi possível concluir o item.');
+          return;
+        }
+        await loadHistory();
+        await Promise.all([loadUpcoming('24h', upcoming24), loadUpcoming('7d', upcoming7d)]);
+        return;
+      }
+
+      if (action === 'remind' && inputId) {
+        await createReminder(itemId, inputId, 'telegram');
+        return;
+      }
+
+      if (action === 'remind-browser' && inputId) {
+        if ('Notification' in window && Notification.permission === 'default') {
+          await Notification.requestPermission();
+        }
+        await createReminder(itemId, inputId, 'browser');
+      }
+    });
+
+    async function pollBrowserReminders() {
+      if (!('Notification' in window) || Notification.permission !== 'granted') {
+        return;
+      }
+
+      const res = await fetch('/api/browser-reminders');
+      if (!res.ok) {
+        return;
+      }
+
+      const reminders = await res.json();
+      for (const reminder of reminders) {
+        new Notification('PRAXIS: lembrete', {
+          body: `${reminder.acao_pratica} | Prazo: ${reminder.prazo_humano}`
+        });
+        await fetch(`/api/browser-reminders/${reminder.id}/sent`, { method: 'POST' });
+      }
+    }
+
+    loadHistory();
+    loadUpcoming('24h', upcoming24);
+    loadUpcoming('7d', upcoming7d);
+    setInterval(pollBrowserReminders, 30000);
+  </script>
+</body>
+</html>
