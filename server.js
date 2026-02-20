@@ -15,6 +15,20 @@ const provider = (process.env.AI_PROVIDER || 'ollama').toLowerCase();
 const ollamaBaseUrl = process.env.OLLAMA_BASE_URL || 'http://localhost:11434';
 const ollamaModel = process.env.OLLAMA_MODEL || 'mistral';
 const openaiModel = process.env.OPENAI_MODEL || 'gpt-4o-mini';
+const PRAXIS_JSON_SCHEMA = {
+  type: 'object',
+  additionalProperties: false,
+  properties: {
+    area: {
+      type: 'string',
+      enum: AREAS
+    },
+    acao: { type: 'string' },
+    prazo: { type: 'string' },
+    regra_minima: { type: 'string' }
+  },
+  required: ['area', 'acao', 'prazo', 'regra_minima']
+};
 
 let fetchImpl = globalThis.fetch;
 
@@ -96,34 +110,57 @@ Aprendizado:
 
 Regras:
 - Responda em português.
-- Escolha exatamente UMA área da vida entre:
-  1) Espiritualidade
-  2) Identidade
-  3) Energia & Ritmo
-  4) Trabalho & Provisão
-  5) Relacionamento
-- Entregue EXATAMENTE neste formato:
-
-ACAO: (uma ação simples de 10 minutos)
-PRAZO: (formato obrigatório dd/mm/aaaa HH:MM)
-REGRA_MINIMA: (se demorar >2 min para começar, reduza para versão de 3 min)
-AREA: (uma das opções acima)
+- Escolha exatamente UMA área da vida entre: ${AREAS.join(', ')}.
+- Retorne APENAS JSON, sem texto extra, markdown ou explicações.
+- Siga exatamente este schema:
+${JSON.stringify(PRAXIS_JSON_SCHEMA)}
 `;
 }
 
-function parsePraxis(texto) {
-  const raw = String(texto || '');
-  const getField = (label) => {
-    const m = raw.match(new RegExp(`${label}:\\s*(.*)`, 'i'));
-    return m ? m[1].trim() : '';
-  };
-
+function normalizePraxisPayload(payload) {
+  const data = payload && typeof payload === 'object' ? payload : {};
   return {
-    acao: getField('ACAO'),
-    prazo: getField('PRAZO'),
-    regraMinima: getField('REGRA_MINIMA'),
-    area: normalizeArea(getField('AREA'))
+    area: normalizeArea(data.area),
+    acao: String(data.acao || '').trim(),
+    prazo: String(data.prazo || '').trim(),
+    regra_minima: String(data.regra_minima || '').trim()
   };
+}
+
+function tryParseJson(text) {
+  try {
+    return JSON.parse(text);
+  } catch (_error) {
+    return null;
+  }
+}
+
+function extractFirstJsonObject(text) {
+  const match = String(text || '').match(/\{[\s\S]*\}/);
+  return match ? match[0] : '';
+}
+
+function parsePraxisJson(rawText) {
+  const raw = String(rawText || '').trim();
+  let parsed = tryParseJson(raw);
+
+  if (!parsed) {
+    const candidate = extractFirstJsonObject(raw);
+    if (candidate) {
+      parsed = tryParseJson(candidate);
+    }
+  }
+
+  if (!parsed || typeof parsed !== 'object') {
+    return { ok: false, error: 'invalid_json', raw };
+  }
+
+  const normalized = normalizePraxisPayload(parsed);
+  if (!normalized.acao || !normalized.prazo || !normalized.regra_minima) {
+    return { ok: false, error: 'missing_fields', raw };
+  }
+
+  return { ok: true, data: normalized };
 }
 
 function makeProviderError(providerName, message, hint) {
@@ -139,13 +176,20 @@ async function gerarPraxisComOllama(input) {
 
   let response;
   try {
-    response = await fetch(`${ollamaBaseUrl}/api/generate`, {
+    response = await fetch(`${ollamaBaseUrl}/api/chat`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         model: ollamaModel,
-        prompt,
-        stream: false
+        messages: [
+          {
+            role: 'system',
+            content: 'Você transforma aprendizado em ação prática e responde apenas JSON válido.'
+          },
+          { role: 'user', content: prompt }
+        ],
+        stream: false,
+        format: PRAXIS_JSON_SCHEMA
       })
     });
   } catch (_error) {
@@ -167,7 +211,7 @@ async function gerarPraxisComOllama(input) {
   }
 
   const data = await response.json();
-  const text = String(data.response || '').trim();
+  const text = String(data?.message?.content || '').trim();
 
   if (!text) {
     throw makeProviderError(
@@ -319,18 +363,19 @@ app.post('/api/praxis', async (req, res) => {
     }
 
     const raw = await gerarPraxis(texto);
-    const parsed = parsePraxis(raw);
-
-    if (!parsed.acao || !parsed.prazo || !parsed.regraMinima) {
+    const parsed = parsePraxisJson(raw);
+    if (!parsed.ok) {
+      console.error('[api/praxis] parse inválido, conteúdo bruto:', raw);
       throw makeProviderError(
         provider,
         'A IA retornou em formato inválido.',
         'Tente novamente; se persistir, ajuste o prompt/modelo no backend.'
       );
     }
+    const praxis = parsed.data;
 
-    let prazoIso = toIsoFromPtBr(parsed.prazo);
-    let prazoHumano = parsed.prazo;
+    let prazoIso = toIsoFromPtBr(praxis.prazo);
+    let prazoHumano = praxis.prazo;
 
     if (!prazoIso) {
       const fallback = new Date(Date.now() + 24 * 60 * 60 * 1000);
@@ -342,7 +387,7 @@ app.post('/api/praxis', async (req, res) => {
     const inserted = await run(
       `INSERT INTO praxis_items (texto, acao_pratica, prazo_iso, prazo_humano, regra_minima, area, status, tags)
        VALUES (?, ?, ?, ?, ?, ?, 'pendente', '[]')`,
-      [texto, parsed.acao, prazoIso, prazoHumano, parsed.regraMinima, parsed.area]
+      [texto, praxis.acao, prazoIso, prazoHumano, praxis.regra_minima, praxis.area]
     );
 
     const item = await get('SELECT * FROM praxis_items WHERE id = ?', [inserted.lastID]);
@@ -631,37 +676,40 @@ app.post('/api/browser-reminders/:id/sent', async (req, res) => {
   }
 });
 
-cron.schedule('* * * * *', async () => {
-  try {
-    const dueReminders = await all(
-      `SELECT r.id, r.praxis_id, r.remind_at_iso, p.acao_pratica, p.prazo_humano
-       FROM reminders r
-       JOIN praxis_items p ON p.id = r.praxis_id
-       WHERE r.channel = 'telegram' AND r.sent_at IS NULL AND datetime(r.remind_at_iso) <= datetime('now')`
-    );
+function setupReminderScheduler() {
+  cron.schedule('* * * * *', async () => {
+    try {
+      const dueReminders = await all(
+        `SELECT r.id, r.praxis_id, r.remind_at_iso, p.acao_pratica, p.prazo_humano
+         FROM reminders r
+         JOIN praxis_items p ON p.id = r.praxis_id
+         WHERE r.channel = 'telegram' AND r.sent_at IS NULL AND datetime(r.remind_at_iso) <= datetime('now')`
+      );
 
-    for (const reminder of dueReminders) {
-      const message = [
-        'PRAXIS: lembrete de execução',
-        `Ação: ${reminder.acao_pratica}`,
-        `Prazo: ${reminder.prazo_humano}`
-      ].join('\n');
+      for (const reminder of dueReminders) {
+        const message = [
+          'PRAXIS: lembrete de execução',
+          `Ação: ${reminder.acao_pratica}`,
+          `Prazo: ${reminder.prazo_humano}`
+        ].join('\n');
 
-      const sent = await sendTelegramMessage(message);
-      if (sent) {
-        await run(`UPDATE reminders SET sent_at = datetime('now') WHERE id = ?`, [
-          reminder.id
-        ]);
+        const sent = await sendTelegramMessage(message);
+        if (sent) {
+          await run(`UPDATE reminders SET sent_at = datetime('now') WHERE id = ?`, [
+            reminder.id
+          ]);
+        }
       }
+    } catch (error) {
+      console.error('Erro no scheduler de lembretes:', error);
     }
-  } catch (error) {
-    console.error('Erro no scheduler de lembretes:', error);
-  }
-});
+  });
+}
 
 async function start() {
   try {
     await initDb();
+    setupReminderScheduler();
     app.listen(port, () => {
       console.log(`PRAXIS rodando em http://localhost:${port} | provider=${provider}`);
       console.log(`Áreas disponíveis: ${AREAS.join(', ')}`);
@@ -679,5 +727,5 @@ if (require.main === module) {
 module.exports = {
   app,
   start,
-  parsePraxis
+  parsePraxisJson
 };
