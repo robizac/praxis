@@ -61,11 +61,14 @@ Abra [http://localhost:3000](http://localhost:3000) (ou a porta configurada).
 
 ## Endpoints
 
-- `POST /api/praxis` -> recebe `{ "texto": "..." }` e retorna ação, prazo, regra mínima e provider
+- `POST /api/praxis` -> recebe `{ "input": "..." }` (ou `{ "texto": "..." }`) e retorna `acao`, `prazo`, `regraMinima`, `area` e `provider`
+- `POST /api/praxis` pode retornar `409` com `{ "error": "limite_pendentes", ... }` quando já houver 2 pendentes
 - `GET /api/history` -> lista os últimos 100 itens
-- `PATCH /api/history/:id` -> atualiza `status` e/ou `tags`
+- `PATCH /api/history/:id` -> atualiza `status`, `tags` e/ou `area`
 - `DELETE /api/history/:id` -> remove item do histórico
 - `GET /api/upcoming?window=24h|7d` -> lista próximos prazos
+- `GET /api/weekly-reviews` -> lista revisões semanais salvas em arquivo local
+- `POST /api/weekly-reviews` -> salva revisão semanal com as 4 respostas
 - `POST /api/complete/:id` -> compatibilidade (marca como feito)
 - `POST /api/remind/:id` -> cria lembrete com `{ "remind_at_iso": "...", "channel": "telegram|browser" }`
 

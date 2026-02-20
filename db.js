@@ -49,6 +49,7 @@ async function initDb() {
       prazo_iso TEXT NOT NULL,
       prazo_humano TEXT NOT NULL,
       regra_minima TEXT NOT NULL,
+      area TEXT NOT NULL DEFAULT 'Energia & Ritmo',
       status TEXT NOT NULL DEFAULT 'pendente',
       tags TEXT NOT NULL DEFAULT '[]',
       created_at TEXT NOT NULL DEFAULT (datetime('now'))
@@ -59,6 +60,13 @@ async function initDb() {
   const hasTags = columns.some((column) => column.name === 'tags');
   if (!hasTags) {
     await run(`ALTER TABLE praxis_items ADD COLUMN tags TEXT NOT NULL DEFAULT '[]'`);
+  }
+
+  const hasArea = columns.some((column) => column.name === 'area');
+  if (!hasArea) {
+    await run(
+      `ALTER TABLE praxis_items ADD COLUMN area TEXT NOT NULL DEFAULT 'Energia & Ritmo'`
+    );
   }
 
   await run(`

@@ -3,6 +3,8 @@ const express = require('express');
 const cron = require('node-cron');
 const dotenv = require('dotenv');
 const { all, get, initDb, run } = require('./db');
+const { AREAS, normalizeArea, shouldBlockNewAction } = require('./domain');
+const { createWeeklyReview, listWeeklyReviews } = require('./weeklyReviewsStore');
 
 dotenv.config();
 
@@ -30,7 +32,7 @@ app.use(express.json());
 app.use(express.static(path.join(__dirname)));
 
 function toIsoFromPtBr(text) {
-  const match = text.match(/(\d{2})\/(\d{2})\/(\d{4})\s+(\d{2}):(\d{2})/);
+  const match = String(text || '').match(/(\d{2})\/(\d{2})\/(\d{4})\s+(\d{2}):(\d{2})/);
   if (!match) {
     return null;
   }
@@ -94,24 +96,33 @@ Aprendizado:
 
 Regras:
 - Responda em português.
+- Escolha exatamente UMA área da vida entre:
+  1) Espiritualidade
+  2) Identidade
+  3) Energia & Ritmo
+  4) Trabalho & Provisão
+  5) Relacionamento
 - Entregue EXATAMENTE neste formato:
 
 ACAO: (uma ação simples de 10 minutos)
 PRAZO: (formato obrigatório dd/mm/aaaa HH:MM)
 REGRA_MINIMA: (se demorar >2 min para começar, reduza para versão de 3 min)
+AREA: (uma das opções acima)
 `;
 }
 
 function parsePraxis(texto) {
+  const raw = String(texto || '');
   const getField = (label) => {
-    const m = texto.match(new RegExp(`${label}:\\s*(.*)`, 'i'));
+    const m = raw.match(new RegExp(`${label}:\\s*(.*)`, 'i'));
     return m ? m[1].trim() : '';
   };
 
   return {
     acao: getField('ACAO'),
     prazo: getField('PRAZO'),
-    regraMinima: getField('REGRA_MINIMA')
+    regraMinima: getField('REGRA_MINIMA'),
+    area: normalizeArea(getField('AREA'))
   };
 }
 
@@ -137,7 +148,7 @@ async function gerarPraxisComOllama(input) {
         stream: false
       })
     });
-  } catch (error) {
+  } catch (_error) {
     throw makeProviderError(
       'ollama',
       'Não foi possível conectar ao Ollama.',
@@ -148,7 +159,6 @@ async function gerarPraxisComOllama(input) {
   if (!response.ok) {
     const body = await response.text();
     console.error('[ollama] erro HTTP', response.status, body);
-
     throw makeProviderError(
       'ollama',
       'Ollama não conseguiu gerar a resposta.',
@@ -182,6 +192,7 @@ async function gerarPraxisComOpenAI(input) {
 
   const fetch = await getFetch();
   const prompt = buildPrompt(input);
+
   const response = await fetch('https://api.openai.com/v1/chat/completions', {
     method: 'POST',
     headers: {
@@ -249,15 +260,14 @@ function mapHistoryRow(row) {
     tags = [];
   }
 
-  const status = normalizeStatus(row.status);
-
   return {
     id: row.id,
     texto: row.texto,
     acao: row.acao_pratica,
     prazo_iso: row.prazo_iso,
     regra_minima: row.regra_minima,
-    status,
+    area: normalizeArea(row.area),
+    status: normalizeStatus(row.status),
     created_at: row.created_at,
     tags,
     acao_pratica: row.acao_pratica,
@@ -280,10 +290,7 @@ async function sendTelegramMessage(message) {
   const res = await fetch(url, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      chat_id: chatId,
-      text: message
-    })
+    body: JSON.stringify({ chat_id: chatId, text: message })
   });
 
   return res.ok;
@@ -294,6 +301,20 @@ app.post('/api/praxis', async (req, res) => {
     const texto = String(req.body?.texto || req.body?.input || '').trim();
     if (!texto) {
       res.status(400).json({ error: true, message: 'Campo texto é obrigatório.' });
+      return;
+    }
+
+    const pendingRow = await get(
+      "SELECT COUNT(*) AS total FROM praxis_items WHERE status = 'pendente'"
+    );
+    const pendentes = Number(pendingRow?.total || 0);
+
+    if (shouldBlockNewAction(pendentes)) {
+      res.status(409).json({
+        error: 'limite_pendentes',
+        message: 'Você já tem 2 ações pendentes. Conclua uma antes de gerar outra.',
+        pendentes
+      });
       return;
     }
 
@@ -319,9 +340,9 @@ app.post('/api/praxis', async (req, res) => {
     }
 
     const inserted = await run(
-      `INSERT INTO praxis_items (texto, acao_pratica, prazo_iso, prazo_humano, regra_minima, status, tags)
-       VALUES (?, ?, ?, ?, ?, 'pendente', '[]')`,
-      [texto, parsed.acao, prazoIso, prazoHumano, parsed.regraMinima]
+      `INSERT INTO praxis_items (texto, acao_pratica, prazo_iso, prazo_humano, regra_minima, area, status, tags)
+       VALUES (?, ?, ?, ?, ?, ?, 'pendente', '[]')`,
+      [texto, parsed.acao, prazoIso, prazoHumano, parsed.regraMinima, parsed.area]
     );
 
     const item = await get('SELECT * FROM praxis_items WHERE id = ?', [inserted.lastID]);
@@ -331,6 +352,7 @@ app.post('/api/praxis', async (req, res) => {
       acao: mapped.acao,
       prazo: mapped.prazo,
       regraMinima: mapped.regraMinima,
+      area: mapped.area,
       acao_pratica: mapped.acao_pratica,
       regra_minima: mapped.regra_minima,
       prazo_iso: mapped.prazo_iso,
@@ -369,7 +391,7 @@ app.post('/api/praxis', async (req, res) => {
 app.get('/api/history', async (_req, res) => {
   try {
     const rows = await all(
-      `SELECT id, texto, acao_pratica, prazo_iso, prazo_humano, regra_minima, status, created_at, tags
+      `SELECT id, texto, acao_pratica, prazo_iso, prazo_humano, regra_minima, area, status, created_at, tags
        FROM praxis_items
        ORDER BY datetime(created_at) DESC
        LIMIT 100`
@@ -400,6 +422,8 @@ app.patch('/api/history/:id', async (req, res) => {
       ? normalizeStatus(req.body.status)
       : normalizeStatus(current.status);
 
+    const nextArea = req.body?.area ? normalizeArea(req.body.area) : normalizeArea(current.area);
+
     let nextTags = [];
     if (Object.prototype.hasOwnProperty.call(req.body || {}, 'tags')) {
       nextTags = sanitizeTags(req.body.tags);
@@ -411,8 +435,9 @@ app.patch('/api/history/:id', async (req, res) => {
       }
     }
 
-    await run('UPDATE praxis_items SET status = ?, tags = ? WHERE id = ?', [
+    await run('UPDATE praxis_items SET status = ?, area = ?, tags = ? WHERE id = ?', [
       nextStatus,
+      nextArea,
       JSON.stringify(nextTags),
       id
     ]);
@@ -454,7 +479,7 @@ app.get('/api/upcoming', async (req, res) => {
     const hours = windowParam === '7d' ? 24 * 7 : 24;
 
     const rows = await all(
-      `SELECT id, texto, acao_pratica, prazo_iso, prazo_humano, regra_minima, status, created_at, tags
+      `SELECT id, texto, acao_pratica, prazo_iso, prazo_humano, regra_minima, area, status, created_at, tags
        FROM praxis_items
        WHERE status = 'pendente'
          AND datetime(prazo_iso) >= datetime('now')
@@ -470,6 +495,46 @@ app.get('/api/upcoming', async (req, res) => {
   }
 });
 
+app.get('/api/weekly-reviews', async (_req, res) => {
+  try {
+    const reviews = await listWeeklyReviews();
+    res.json(reviews);
+  } catch (error) {
+    console.error('Erro em /api/weekly-reviews:', error);
+    res.status(500).json({ error: true, message: 'Falha ao carregar revisões semanais.' });
+  }
+});
+
+app.post('/api/weekly-reviews', async (req, res) => {
+  try {
+    const respostas = req.body?.respostas || {};
+    const payload = {
+      respostas: {
+        executei: String(respostas.executei || '').trim(),
+        trouxe_paz: String(respostas.trouxe_paz || '').trim(),
+        gerou_peso: String(respostas.gerou_peso || '').trim(),
+        deve_sair: String(respostas.deve_sair || '').trim()
+      }
+    };
+
+    if (
+      !payload.respostas.executei ||
+      !payload.respostas.trouxe_paz ||
+      !payload.respostas.gerou_peso ||
+      !payload.respostas.deve_sair
+    ) {
+      res.status(400).json({ error: true, message: 'Preencha as 4 respostas da revisão semanal.' });
+      return;
+    }
+
+    const review = await createWeeklyReview(payload);
+    res.status(201).json(review);
+  } catch (error) {
+    console.error('Erro em /api/weekly-reviews:', error);
+    res.status(500).json({ error: true, message: 'Falha ao salvar revisão semanal.' });
+  }
+});
+
 app.post('/api/complete/:id', async (req, res) => {
   try {
     const id = Number(req.params.id);
@@ -478,10 +543,7 @@ app.post('/api/complete/:id', async (req, res) => {
       return;
     }
 
-    const updated = await run('UPDATE praxis_items SET status = ? WHERE id = ?', [
-      'feito',
-      id
-    ]);
+    const updated = await run('UPDATE praxis_items SET status = ? WHERE id = ?', ['feito', id]);
 
     if (updated.changes === 0) {
       res.status(404).json({ error: true, message: 'Item não encontrado.' });
@@ -602,6 +664,7 @@ async function start() {
     await initDb();
     app.listen(port, () => {
       console.log(`PRAXIS rodando em http://localhost:${port} | provider=${provider}`);
+      console.log(`Áreas disponíveis: ${AREAS.join(', ')}`);
     });
   } catch (error) {
     console.error('Erro ao iniciar servidor:', error);
@@ -609,4 +672,12 @@ async function start() {
   }
 }
 
-start();
+if (require.main === module) {
+  start();
+}
+
+module.exports = {
+  app,
+  start,
+  parsePraxis
+};

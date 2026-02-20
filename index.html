@@ -145,6 +145,30 @@
       font-size: 1.1rem;
     }
 
+    .toolbar {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+
+    .toolbar select {
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 8px 10px;
+      font: inherit;
+      background: #fff;
+      color: var(--text);
+    }
+
+    .toolbar .light-button {
+      background: #efefef;
+      color: #2f2f2f;
+      border: 1px solid #e3e3e3;
+      margin-top: 0;
+    }
+
     .history-item {
       border: 1px solid var(--border);
       border-radius: 10px;
@@ -161,6 +185,28 @@
       color: var(--muted);
       font-size: 0.86rem;
       margin-top: 8px;
+    }
+
+    .notice {
+      margin-top: 10px;
+      padding: 10px 12px;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      background: #f4f4f3;
+      color: #4b4b4b;
+      font-size: 0.92rem;
+      display: none;
+    }
+
+    .area-badge {
+      display: inline-block;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      padding: 2px 8px;
+      font-size: 0.78rem;
+      color: #5a5a5a;
+      margin-bottom: 8px;
+      margin-right: 6px;
     }
 
     .status {
@@ -200,6 +246,42 @@
     .upcoming-box p {
       margin: 0 0 8px;
       font-size: 0.9rem;
+    }
+
+    .review-form {
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      background: #fcfcfc;
+      padding: 12px;
+      display: none;
+      gap: 10px;
+    }
+
+    .review-form.visible {
+      display: grid;
+    }
+
+    .review-form textarea {
+      min-height: 74px;
+    }
+
+    .review-list details {
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      background: #fcfcfc;
+      padding: 10px 12px;
+      margin-top: 8px;
+    }
+
+    .review-list summary {
+      cursor: pointer;
+      color: #3d3d3d;
+      font-size: 0.92rem;
+    }
+
+    .review-list p {
+      margin: 8px 0;
+      font-size: 0.92rem;
     }
 
     .tag {
@@ -250,6 +332,7 @@
       <label for="learnedInput">O que você aprendeu?</label>
       <textarea id="learnedInput" placeholder="Ex.: Aprendi que dividir tarefas grandes em blocos de 25 minutos melhora meu foco."></textarea>
       <button id="transformBtn" type="button">Transformar em Ação</button>
+      <div id="notice" class="notice"></div>
 
       <div id="result" class="result" aria-live="polite">
         <div class="item">
@@ -272,6 +355,17 @@
 
       <section class="history">
         <h2>Histórico</h2>
+        <div class="toolbar">
+          <select id="areaFilter">
+            <option value="">Todas as áreas</option>
+            <option value="Espiritualidade">Espiritualidade</option>
+            <option value="Identidade">Identidade</option>
+            <option value="Energia & Ritmo">Energia & Ritmo</option>
+            <option value="Trabalho & Provisão">Trabalho & Provisão</option>
+            <option value="Relacionamento">Relacionamento</option>
+          </select>
+          <button id="weeklyReviewBtn" type="button" class="light-button">Revisão da Semana</button>
+        </div>
         <div id="historyList"></div>
       </section>
 
@@ -288,6 +382,29 @@
           </div>
         </div>
       </section>
+
+      <section class="history">
+        <h2>Revisões Semanais</h2>
+        <div id="weeklyReviewForm" class="review-form">
+          <label for="reviewExecutei">1) O que executei?</label>
+          <textarea id="reviewExecutei"></textarea>
+
+          <label for="reviewPaz">2) O que trouxe paz?</label>
+          <textarea id="reviewPaz"></textarea>
+
+          <label for="reviewPeso">3) O que gerou peso?</label>
+          <textarea id="reviewPeso"></textarea>
+
+          <label for="reviewSair">4) O que deve sair?</label>
+          <textarea id="reviewSair"></textarea>
+
+          <div class="row">
+            <button id="saveWeeklyReviewBtn" type="button">Salvar revisão</button>
+            <button id="cancelWeeklyReviewBtn" type="button" class="light-button">Fechar</button>
+          </div>
+        </div>
+        <div id="weeklyReviewsList" class="review-list"></div>
+      </section>
     </section>
   </main>
 
@@ -303,18 +420,79 @@
     const historyList = document.getElementById('historyList');
     const upcoming24 = document.getElementById('upcoming24');
     const upcoming7d = document.getElementById('upcoming7d');
+    const notice = document.getElementById('notice');
+    const areaFilter = document.getElementById('areaFilter');
+    const weeklyReviewBtn = document.getElementById('weeklyReviewBtn');
+    const weeklyReviewForm = document.getElementById('weeklyReviewForm');
+    const saveWeeklyReviewBtn = document.getElementById('saveWeeklyReviewBtn');
+    const cancelWeeklyReviewBtn = document.getElementById('cancelWeeklyReviewBtn');
+    const weeklyReviewsList = document.getElementById('weeklyReviewsList');
+    const reviewExecutei = document.getElementById('reviewExecutei');
+    const reviewPaz = document.getElementById('reviewPaz');
+    const reviewPeso = document.getElementById('reviewPeso');
+    const reviewSair = document.getElementById('reviewSair');
+
+    let historyCache = [];
 
     function sanitizeText(text) {
       return text.replace(/\s+/g, ' ').trim();
     }
 
     function escapeHtml(text) {
-      return text
+      return String(text || '')
         .replaceAll('&', '&amp;')
         .replaceAll('<', '&lt;')
         .replaceAll('>', '&gt;')
         .replaceAll('"', '&quot;')
         .replaceAll("'", '&#39;');
+    }
+
+    function showNotice(message) {
+      notice.textContent = message;
+      notice.style.display = 'block';
+    }
+
+    function hideNotice() {
+      notice.style.display = 'none';
+      notice.textContent = '';
+    }
+
+    function renderHistory(items) {
+      const selectedArea = areaFilter.value;
+      const filteredItems = selectedArea
+        ? items.filter((item) => item.area === selectedArea)
+        : items;
+
+      if (!filteredItems.length) {
+        historyList.innerHTML = '<p class="history-empty">Nenhum item para este filtro.</p>';
+        return;
+      }
+
+      historyList.innerHTML = filteredItems
+        .map((item) => {
+          const acao = item.acao || item.acao_pratica || '';
+          const prazo = item.prazo || item.prazo_humano || '';
+          const regra = item.regraMinima || item.regra_minima || '';
+          const isDone = item.status === 'feito' || item.status === 'concluido';
+          return `
+            <article class="history-item">
+              <span class="area-badge">${escapeHtml(item.area || 'Energia & Ritmo')}</span>
+              <span class="status">${item.status}</span>
+              <p><strong>Aprendizado:</strong> ${escapeHtml(item.texto)}</p>
+              <p><strong>Ação:</strong> ${escapeHtml(acao)}</p>
+              <p><strong>Prazo:</strong> ${escapeHtml(prazo)}</p>
+              <p><strong>Regra mínima:</strong> ${escapeHtml(regra)}</p>
+              <div class="row">
+                <button type="button" data-action="complete" data-id="${item.id}" ${isDone ? 'disabled' : ''}>
+                  ${isDone ? 'Feito' : 'Concluir'}
+                </button>
+                <button type="button" data-action="copy" data-id="${item.id}">Copiar ação</button>
+              </div>
+              <div class="history-meta">Criado em ${escapeHtml(item.created_at)}</div>
+            </article>
+          `;
+        })
+        .join('');
     }
 
     async function loadHistory() {
@@ -324,40 +502,9 @@
           throw new Error('Falha ao carregar histórico');
         }
 
-        const items = await res.json();
-        if (!items.length) {
-          historyList.innerHTML = '<p class="history-empty">Nenhum item ainda.</p>';
-          return;
-        }
-
-        historyList.innerHTML = items
-          .map((item) => {
-            const remindInputId = `remind-${item.id}`;
-            const acao = item.acao || item.acao_pratica || '';
-            const prazo = item.prazo || item.prazo_humano || '';
-            const regra = item.regraMinima || item.regra_minima || '';
-            const isDone = item.status === 'feito' || item.status === 'concluido';
-            return `
-              <article class="history-item">
-                <span class="status">${item.status}</span>
-                <p><strong>Aprendizado:</strong> ${escapeHtml(item.texto)}</p>
-                <p><strong>Ação:</strong> ${escapeHtml(acao)}</p>
-                <p><strong>Prazo:</strong> ${escapeHtml(prazo)}</p>
-                <p><strong>Regra mínima:</strong> ${escapeHtml(regra)}</p>
-                <div class="row">
-                  <button type="button" data-action="complete" data-id="${item.id}" ${isDone ? 'disabled' : ''}>
-                    ${isDone ? 'Feito' : 'Concluir'}
-                  </button>
-                  <input id="${remindInputId}" type="datetime-local" />
-                  <button type="button" data-action="remind" data-id="${item.id}" data-input-id="${remindInputId}">Criar lembrete</button>
-                  <button type="button" data-action="remind-browser" data-id="${item.id}" data-input-id="${remindInputId}">Lembrete no navegador</button>
-                </div>
-                <div class="history-meta">Criado em ${escapeHtml(item.created_at)}</div>
-              </article>
-            `;
-          })
-          .join('');
-      } catch (error) {
+        historyCache = await res.json();
+        renderHistory(historyCache);
+      } catch (_error) {
         historyList.innerHTML = '<p class="history-empty">Erro ao carregar histórico.</p>';
       }
     }
@@ -389,36 +536,43 @@
       }
     }
 
-    async function createReminder(itemId, inputId, channel) {
-      const input = document.getElementById(inputId);
-      if (!input || !input.value) {
-        alert('Escolha data e hora para o lembrete.');
+    function renderWeeklyReviews(items) {
+      if (!Array.isArray(items) || !items.length) {
+        weeklyReviewsList.innerHTML = '<p class="history-empty">Sem revisões ainda.</p>';
         return;
       }
 
-      const remindAtIso = new Date(input.value).toISOString();
-      const res = await fetch(`/api/remind/${itemId}`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ remind_at_iso: remindAtIso, channel })
-      });
+      weeklyReviewsList.innerHTML = items
+        .map((item) => `
+          <details>
+            <summary>${new Date(item.created_at).toLocaleString('pt-BR')}</summary>
+            <p><strong>O que executei?</strong><br>${escapeHtml(item.respostas?.executei || '')}</p>
+            <p><strong>O que trouxe paz?</strong><br>${escapeHtml(item.respostas?.trouxe_paz || '')}</p>
+            <p><strong>O que gerou peso?</strong><br>${escapeHtml(item.respostas?.gerou_peso || '')}</p>
+            <p><strong>O que deve sair?</strong><br>${escapeHtml(item.respostas?.deve_sair || '')}</p>
+          </details>
+        `)
+        .join('');
+    }
 
-      if (!res.ok) {
-        alert('Não foi possível criar o lembrete.');
-        return;
+    async function loadWeeklyReviews() {
+      try {
+        const res = await fetch('/api/weekly-reviews');
+        if (!res.ok) {
+          throw new Error('Falha ao carregar revisões');
+        }
+        const items = await res.json();
+        renderWeeklyReviews(items);
+      } catch (_error) {
+        weeklyReviewsList.innerHTML = '<p class="history-empty">Erro ao carregar revisões.</p>';
       }
-
-      alert(`Lembrete (${channel}) criado com sucesso.`);
     }
 
     transformBtn.addEventListener('click', async () => {
       const learned = sanitizeText(learnedInput.value);
 
       if (!learned) {
-        result.classList.add('visible');
-        actionText.textContent = 'Escreva um aprendizado específico para gerar uma ação.';
-        deadlineText.textContent = 'Defina em seguida um prazo de até 48 horas.';
-        ruleText.textContent = 'Comece com a menor versão possível (3 minutos).';
+        showNotice('Escreva um aprendizado específico para gerar uma ação.');
         return;
       }
 
@@ -429,37 +583,34 @@
         const res = await fetch('/api/praxis', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ texto: learned })
+          body: JSON.stringify({ input: learned })
         });
 
+        if (res.status === 409) {
+          const blocked = await res.json();
+          showNotice(blocked.message || 'Conclua uma ação pendente antes de criar outra.');
+          return;
+        }
+
         if (!res.ok) {
-          throw new Error('Falha ao gerar ação');
+          const payload = await res.json().catch(() => null);
+          throw new Error(payload?.message || 'Falha ao gerar ação');
         }
 
         const data = await res.json();
+        hideNotice();
         actionText.textContent = data.acao || data.acao_pratica || '';
         deadlineText.textContent = data.prazo;
         ruleText.textContent = data.regraMinima || data.regra_minima || '';
-
-        if (Array.isArray(data.tags) && data.tags.length) {
-          tagsWrap.style.display = 'block';
-          tagsText.innerHTML = data.tags.map((tag) => `<span class="tag">${escapeHtml(tag)}</span>`).join('');
-        } else {
-          tagsWrap.style.display = 'none';
-          tagsText.innerHTML = '';
-        }
+        tagsWrap.style.display = 'block';
+        tagsText.innerHTML = `<span class="area-badge">${escapeHtml(data.area || 'Energia & Ritmo')}</span>`;
 
         result.classList.add('visible');
         learnedInput.value = '';
         await loadHistory();
         await Promise.all([loadUpcoming('24h', upcoming24), loadUpcoming('7d', upcoming7d)]);
-      } catch (error) {
-        actionText.textContent = 'Não foi possível gerar a ação agora.';
-        deadlineText.textContent = 'Tente novamente em instantes.';
-        ruleText.textContent = 'Mantenha uma versão mínima de 3 minutos.';
-        tagsWrap.style.display = 'none';
-        tagsText.innerHTML = '';
-        result.classList.add('visible');
+      } catch (_error) {
+        showNotice('Não foi possível gerar a ação agora. Tente novamente em instantes.');
       } finally {
         transformBtn.disabled = false;
         transformBtn.textContent = 'Transformar em Ação';
@@ -474,20 +625,19 @@
 
       const action = target.dataset.action;
       const itemId = target.dataset.id;
-      const inputId = target.dataset.inputId;
 
-      if (!action || !itemId) {
+      if (!action) {
         return;
       }
 
-      if (action === 'complete') {
+      if (action === 'complete' && itemId) {
         const res = await fetch(`/api/history/${itemId}`, {
           method: 'PATCH',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ status: 'feito' })
         });
         if (!res.ok) {
-          alert('Não foi possível concluir o item.');
+          showNotice('Não foi possível concluir o item agora.');
           return;
         }
         await loadHistory();
@@ -495,42 +645,66 @@
         return;
       }
 
-      if (action === 'remind' && inputId) {
-        await createReminder(itemId, inputId, 'telegram');
-        return;
-      }
-
-      if (action === 'remind-browser' && inputId) {
-        if ('Notification' in window && Notification.permission === 'default') {
-          await Notification.requestPermission();
+      if (action === 'copy') {
+        const text = historyCache.find((item) => String(item.id) === String(itemId))?.acao || '';
+        if (text) {
+          await navigator.clipboard.writeText(text);
+          showNotice('Ação copiada.');
         }
-        await createReminder(itemId, inputId, 'browser');
       }
     });
 
-    async function pollBrowserReminders() {
-      if (!('Notification' in window) || Notification.permission !== 'granted') {
+    areaFilter.addEventListener('change', () => {
+      renderHistory(historyCache);
+    });
+
+    weeklyReviewBtn.addEventListener('click', () => {
+      weeklyReviewForm.classList.toggle('visible');
+    });
+
+    cancelWeeklyReviewBtn.addEventListener('click', () => {
+      weeklyReviewForm.classList.remove('visible');
+    });
+
+    saveWeeklyReviewBtn.addEventListener('click', async () => {
+      const payload = {
+        respostas: {
+          executei: sanitizeText(reviewExecutei.value),
+          trouxe_paz: sanitizeText(reviewPaz.value),
+          gerou_peso: sanitizeText(reviewPeso.value),
+          deve_sair: sanitizeText(reviewSair.value)
+        }
+      };
+
+      if (!payload.respostas.executei || !payload.respostas.trouxe_paz || !payload.respostas.gerou_peso || !payload.respostas.deve_sair) {
+        showNotice('Preencha as 4 respostas da revisão da semana.');
         return;
       }
 
-      const res = await fetch('/api/browser-reminders');
+      const res = await fetch('/api/weekly-reviews', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+
       if (!res.ok) {
+        showNotice('Não foi possível salvar a revisão agora.');
         return;
       }
 
-      const reminders = await res.json();
-      for (const reminder of reminders) {
-        new Notification('PRAXIS: lembrete', {
-          body: `${reminder.acao_pratica} | Prazo: ${reminder.prazo_humano}`
-        });
-        await fetch(`/api/browser-reminders/${reminder.id}/sent`, { method: 'POST' });
-      }
-    }
+      reviewExecutei.value = '';
+      reviewPaz.value = '';
+      reviewPeso.value = '';
+      reviewSair.value = '';
+      weeklyReviewForm.classList.remove('visible');
+      hideNotice();
+      await loadWeeklyReviews();
+    });
 
     loadHistory();
+    loadWeeklyReviews();
     loadUpcoming('24h', upcoming24);
     loadUpcoming('7d', upcoming7d);
-    setInterval(pollBrowserReminders, 30000);
   </script>
 </body>
 </html>
