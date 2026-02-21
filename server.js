@@ -102,7 +102,7 @@ function normalizeStatus(status) {
   return 'pendente';
 }
 
-function buildPrompt(input) {
+function buildPrompt(input, selectedArea) {
   return `
 Você é o PRAXIS.
 Transforme o aprendizado abaixo em execução prática mínima, sem teoria.
@@ -110,13 +110,27 @@ Transforme o aprendizado abaixo em execução prática mínima, sem teoria.
 Aprendizado:
 "${input}"
 
+Área da Vida escolhida pelo usuário (obrigatória e prioritária):
+"${selectedArea}"
+
 Regras:
 - Responda em português.
-- Escolha exatamente UMA área da vida entre: ${AREAS.join(', ')}.
+- Use exatamente a área escolhida pelo usuário em "area".
 - Retorne APENAS JSON, sem texto extra, markdown ou explicações.
 - Siga exatamente este schema:
 ${JSON.stringify(PRAXIS_JSON_SCHEMA)}
 `;
+}
+
+function buildSafeFallback(texto, area) {
+  const due = new Date(Date.now() + 24 * 60 * 60 * 1000);
+  due.setHours(20, 0, 0, 0);
+  return {
+    area: normalizeArea(area),
+    acao: `Aplique por 10 minutos: "${texto}".`,
+    prazo: formatPtBr(due),
+    regra_minima: 'Se demorar mais de 2 minutos para começar, reduza para 3 minutos e execute agora.'
+  };
 }
 
 function normalizePraxisPayload(payload) {
@@ -172,8 +186,8 @@ function makeProviderError(providerName, message, hint) {
   return err;
 }
 
-async function gerarPraxisComOllama(input) {
-  const prompt = buildPrompt(input);
+async function gerarPraxisComOllama(input, selectedArea) {
+  const prompt = buildPrompt(input, selectedArea);
   const fetch = await getFetch();
 
   let response;
@@ -226,7 +240,7 @@ async function gerarPraxisComOllama(input) {
   return text;
 }
 
-async function gerarPraxisComOpenAI(input) {
+async function gerarPraxisComOpenAI(input, selectedArea) {
   const apiKey = process.env.OPENAI_API_KEY;
   if (!apiKey) {
     throw makeProviderError(
@@ -237,7 +251,7 @@ async function gerarPraxisComOpenAI(input) {
   }
 
   const fetch = await getFetch();
-  const prompt = buildPrompt(input);
+  const prompt = buildPrompt(input, selectedArea);
 
   const response = await fetch('https://api.openai.com/v1/chat/completions', {
     method: 'POST',
@@ -282,9 +296,9 @@ async function gerarPraxisComOpenAI(input) {
   return text;
 }
 
-async function gerarPraxis(input) {
+async function gerarPraxis(input, selectedArea) {
   if (provider === 'openai') {
-    return gerarPraxisComOpenAI(input);
+    return gerarPraxisComOpenAI(input, selectedArea);
   }
 
   if (provider !== 'ollama') {
@@ -295,7 +309,7 @@ async function gerarPraxis(input) {
     );
   }
 
-  return gerarPraxisComOllama(input);
+  return gerarPraxisComOllama(input, selectedArea);
 }
 
 function mapHistoryRow(row) {
@@ -345,6 +359,7 @@ async function sendTelegramMessage(message) {
 app.post('/api/praxis', async (req, res) => {
   try {
     const texto = String(req.body?.texto || req.body?.input || '').trim();
+    const selectedArea = normalizeArea(req.body?.area);
     if (!texto) {
       res.status(400).json({ error: true, message: 'Campo texto é obrigatório.' });
       return;
@@ -364,17 +379,21 @@ app.post('/api/praxis', async (req, res) => {
       return;
     }
 
-    const raw = await gerarPraxis(texto);
+    const raw = await gerarPraxis(texto, selectedArea);
     const parsed = parsePraxisJson(raw);
+    let praxis;
+    let warning = '';
+
     if (!parsed.ok) {
       console.error('[api/praxis] parse inválido, conteúdo bruto:', raw);
-      throw makeProviderError(
-        provider,
-        'A IA retornou em formato inválido.',
-        'Tente novamente; se persistir, ajuste o prompt/modelo no backend.'
-      );
+      praxis = buildSafeFallback(texto, selectedArea);
+      warning = 'Não entendi a resposta da IA — gere novamente.';
+    } else {
+      praxis = {
+        ...parsed.data,
+        area: selectedArea || parsed.data.area
+      };
     }
-    const praxis = parsed.data;
 
     let prazoIso = toIsoFromPtBr(praxis.prazo);
     let prazoHumano = praxis.prazo;
@@ -408,7 +427,8 @@ app.post('/api/praxis', async (req, res) => {
       tags: mapped.tags,
       status: mapped.status,
       created_at: mapped.created_at,
-      provider
+      provider,
+      warning
     });
   } catch (error) {
     const activeProvider = error.provider || provider;
@@ -432,6 +452,22 @@ app.post('/api/praxis', async (req, res) => {
       hint: error.hint || 'Revise OPENAI_API_KEY e OPENAI_MODEL no .env.',
       provider: 'openai'
     });
+  }
+});
+
+app.get('/api/meta', async (_req, res) => {
+  try {
+    const pendingRow = await get(
+      "SELECT COUNT(*) AS total FROM praxis_items WHERE status = 'pendente'"
+    );
+    const pendentes = Number(pendingRow?.total || 0);
+    res.json({
+      pendentes,
+      pode_gerar: pendentes < 2
+    });
+  } catch (error) {
+    console.error('Erro em /api/meta:', error);
+    res.status(500).json({ error: true, message: 'Falha ao carregar metadados.' });
   }
 });
 

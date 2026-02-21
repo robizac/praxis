@@ -59,10 +59,31 @@ npm start
 
 Abra [http://localhost:3000](http://localhost:3000) (ou a porta configurada).
 
+## Como usar (3 telas)
+
+1. `Início`:
+- Escreva o aprendizado
+- Escolha a `Área da Vida`
+- Clique em `Transformar em Ação`
+- O app gera: ação, prazo e regra mínima
+
+2. `Histórico`:
+- Veja todas as ações em cards
+- Filtre por área e status
+- Busque por texto
+- Ordene por mais recentes ou prazo mais próximo
+- Conclua ou reabra ações
+
+3. `Revisão Semanal`:
+- Responda as 4 perguntas
+- Salve a revisão
+- Consulte as últimas revisões em formato colapsável
+
 ## Endpoints
 
 - `POST /api/praxis` -> recebe `{ "input": "..." }` (ou `{ "texto": "..." }`) e retorna `acao`, `prazo`, `regraMinima`, `area` e `provider`
 - `POST /api/praxis` pode retornar `409` com `{ "error": "limite_pendentes", ... }` quando já houver 2 pendentes
+- `GET /api/meta` -> retorna estado simples da home (`pendentes` e `pode_gerar`)
 - `GET /api/history` -> lista os últimos 100 itens
 - `PATCH /api/history/:id` -> atualiza `status`, `tags` e/ou `area`
 - `DELETE /api/history/:id` -> remove item do histórico

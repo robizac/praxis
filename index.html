@@ -10,8 +10,8 @@
       --surface: #ffffff;
       --text: #1f1f1f;
       --muted: #6b6b6b;
-      --border: #e7e7e7;
-      --accent: #1f1f1f;
+      --border: #e5e5e5;
+      --accent: #272727;
     }
 
     * {
@@ -23,420 +23,380 @@
       font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
       background: var(--bg);
       color: var(--text);
-      line-height: 1.5;
+      line-height: 1.45;
     }
 
     .app {
-      min-height: 100vh;
-      display: grid;
-      place-items: center;
-      padding: 24px;
+      max-width: 860px;
+      margin: 0 auto;
+      padding: 22px 16px 34px;
     }
 
-    .card {
-      width: 100%;
-      max-width: 680px;
+    .topbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 18px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 1.05rem;
+      font-weight: 700;
+      letter-spacing: 0.03em;
+    }
+
+    .nav {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .nav a {
+      color: var(--text);
+      text-decoration: none;
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      padding: 6px 12px;
+      font-size: 0.9rem;
+      background: #fff;
+    }
+
+    .nav a.active {
+      background: var(--accent);
+      color: #fff;
+      border-color: var(--accent);
+    }
+
+    .screen {
+      display: none;
       background: var(--surface);
       border: 1px solid var(--border);
       border-radius: 14px;
-      padding: 24px;
+      padding: 18px;
     }
 
-    h1 {
+    .screen.active {
+      display: block;
+    }
+
+    h1, h2 {
       margin: 0;
-      font-size: 1.8rem;
-      letter-spacing: 0.02em;
+      font-size: 1.4rem;
     }
 
     .subtitle {
-      margin: 8px 0 20px;
+      margin: 8px 0 16px;
       color: var(--muted);
-      font-size: 0.98rem;
+      font-size: 0.95rem;
     }
 
     label {
       display: block;
+      margin-bottom: 6px;
       font-weight: 600;
-      margin-bottom: 8px;
+      font-size: 0.93rem;
+    }
+
+    textarea,
+    select,
+    input {
+      width: 100%;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 10px 12px;
+      font: inherit;
+      background: #fff;
+      color: var(--text);
     }
 
     textarea {
-      width: 100%;
-      min-height: 140px;
+      min-height: 130px;
       resize: vertical;
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      padding: 12px;
-      font: inherit;
-      color: var(--text);
-      background: #fff;
     }
 
-    textarea:focus {
-      outline: 2px solid #d7d7d7;
-      outline-offset: 1px;
+    .row {
+      display: grid;
+      gap: 10px;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
     }
 
-    button {
-      margin-top: 14px;
+    .controls {
+      display: grid;
+      gap: 8px;
+      grid-template-columns: 1fr 1fr 1fr 1fr;
+      margin-bottom: 12px;
+    }
+
+    .button {
       border: none;
       border-radius: 10px;
-      padding: 11px 16px;
       background: var(--accent);
       color: #fff;
       font: inherit;
       font-weight: 600;
       cursor: pointer;
+      padding: 10px 14px;
+      margin-top: 12px;
     }
 
-    button:hover {
-      opacity: 0.92;
+    .button[disabled] {
+      opacity: 0.6;
+      cursor: default;
     }
 
-    .result {
-      margin-top: 22px;
-      border-top: 1px solid var(--border);
-      padding-top: 18px;
-      display: none;
-      gap: 12px;
-    }
-
-    .result.visible {
-      display: grid;
-    }
-
-    .item {
-      padding: 12px;
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      background: #fcfcfc;
-    }
-
-    .item strong {
-      display: block;
-      margin-bottom: 4px;
-      font-size: 0.92rem;
-      color: #3b3b3b;
-    }
-
-    .row {
-      display: flex;
-      gap: 8px;
-      flex-wrap: wrap;
-      margin-top: 10px;
-    }
-
-    .row button {
-      margin-top: 0;
-      padding: 8px 12px;
-      font-size: 0.9rem;
-    }
-
-    .history {
-      margin-top: 22px;
-      border-top: 1px solid var(--border);
-      padding-top: 18px;
-      display: grid;
-      gap: 10px;
-    }
-
-    .history h2 {
-      margin: 0 0 2px;
-      font-size: 1.1rem;
-    }
-
-    .toolbar {
-      display: flex;
-      gap: 8px;
-      flex-wrap: wrap;
-      align-items: center;
-      margin-bottom: 8px;
-    }
-
-    .toolbar select {
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      padding: 8px 10px;
-      font: inherit;
-      background: #fff;
-      color: var(--text);
-    }
-
-    .toolbar .light-button {
-      background: #efefef;
-      color: #2f2f2f;
-      border: 1px solid #e3e3e3;
-      margin-top: 0;
-    }
-
-    .history-item {
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      background: #fcfcfc;
-      padding: 12px;
-    }
-
-    .history-item p {
-      margin: 0 0 8px;
-      font-size: 0.95rem;
-    }
-
-    .history-meta {
-      color: var(--muted);
-      font-size: 0.86rem;
-      margin-top: 8px;
+    .button.secondary {
+      background: #ececea;
+      color: #333;
+      border: 1px solid #e2e2df;
     }
 
     .notice {
       margin-top: 10px;
-      padding: 10px 12px;
       border: 1px solid var(--border);
+      background: #f2f2f0;
+      color: #4c4c4c;
       border-radius: 10px;
-      background: #f4f4f3;
-      color: #4b4b4b;
+      padding: 10px 12px;
       font-size: 0.92rem;
       display: none;
     }
 
-    .area-badge {
-      display: inline-block;
-      border-radius: 999px;
-      border: 1px solid var(--border);
-      padding: 2px 8px;
-      font-size: 0.78rem;
-      color: #5a5a5a;
-      margin-bottom: 8px;
-      margin-right: 6px;
+    .notice.visible {
+      display: block;
     }
 
-    .status {
-      display: inline-block;
-      border: 1px solid var(--border);
-      border-radius: 999px;
-      padding: 2px 8px;
-      font-size: 0.78rem;
-      color: #4a4a4a;
-      margin-bottom: 8px;
+    .cards {
+      margin-top: 14px;
+      display: grid;
+      gap: 10px;
+      grid-template-columns: 1fr;
     }
 
-    .history-empty {
+    .card {
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      background: #fcfcfc;
+      padding: 12px;
+    }
+
+    .card strong {
+      font-size: 0.86rem;
+      color: #4d4d4d;
+      display: block;
+      margin-bottom: 4px;
+    }
+
+    .history-item {
+      margin-bottom: 10px;
+    }
+
+    .meta {
       color: var(--muted);
-      font-size: 0.95rem;
-      margin: 0;
-    }
-
-    .upcoming-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 10px;
-    }
-
-    .upcoming-box {
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      padding: 12px;
-      background: #fcfcfc;
-    }
-
-    .upcoming-box h3 {
-      margin: 0 0 10px;
-      font-size: 0.92rem;
-    }
-
-    .upcoming-box p {
-      margin: 0 0 8px;
-      font-size: 0.9rem;
-    }
-
-    .review-form {
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      background: #fcfcfc;
-      padding: 12px;
-      display: none;
-      gap: 10px;
-    }
-
-    .review-form.visible {
-      display: grid;
-    }
-
-    .review-form textarea {
-      min-height: 74px;
-    }
-
-    .review-list details {
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      background: #fcfcfc;
-      padding: 10px 12px;
+      font-size: 0.84rem;
       margin-top: 8px;
     }
 
-    .review-list summary {
-      cursor: pointer;
-      color: #3d3d3d;
-      font-size: 0.92rem;
-    }
-
-    .review-list p {
-      margin: 8px 0;
-      font-size: 0.92rem;
-    }
-
-    .tag {
+    .badge {
       display: inline-block;
-      border-radius: 999px;
       border: 1px solid var(--border);
+      border-radius: 999px;
       padding: 2px 8px;
-      font-size: 0.78rem;
+      font-size: 0.77rem;
       margin-right: 6px;
-      margin-top: 4px;
-      color: #5a5a5a;
+      margin-bottom: 8px;
+      color: #555;
     }
 
-    @media (max-width: 640px) {
-      .app {
-        padding: 14px;
-      }
+    .empty {
+      color: var(--muted);
+      font-size: 0.94rem;
+      margin: 4px 0;
+    }
 
-      .card {
-        padding: 16px;
-        border-radius: 12px;
-      }
+    details {
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 10px 12px;
+      background: #fcfcfc;
+      margin-bottom: 8px;
+    }
 
-      h1 {
-        font-size: 1.45rem;
-      }
+    summary {
+      cursor: pointer;
+      font-size: 0.92rem;
+      color: #444;
+    }
 
-      textarea {
-        min-height: 120px;
-      }
+    .loading::after {
+      content: ' ...';
+      animation: blink 1s infinite;
+    }
 
-      button {
-        width: 100%;
-      }
+    @keyframes blink {
+      0% { opacity: 0.2; }
+      50% { opacity: 1; }
+      100% { opacity: 0.2; }
+    }
 
-      .upcoming-grid {
+    @media (max-width: 760px) {
+      .row,
+      .controls {
         grid-template-columns: 1fr;
+      }
+
+      .topbar {
+        flex-direction: column;
+        align-items: flex-start;
       }
     }
   </style>
 </head>
 <body>
   <main class="app">
-    <section class="card">
+    <header class="topbar">
+      <div class="brand">
+        <svg width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true">
+          <circle cx="9" cy="9" r="7" stroke="#262626" stroke-width="1.4" />
+          <circle cx="9" cy="9" r="2" fill="#262626" />
+        </svg>
+        <span>PRAXIS</span>
+      </div>
+      <nav class="nav">
+        <a href="#/home" data-nav="home">Início</a>
+        <a href="#/history" data-nav="history">Histórico</a>
+        <a href="#/review" data-nav="review">Revisão Semanal</a>
+      </nav>
+    </header>
+
+    <section id="screen-home" class="screen">
       <h1>PRAXIS</h1>
       <p class="subtitle">Transformar conhecimento em ação prática.</p>
 
-      <label for="learnedInput">O que você aprendeu?</label>
-      <textarea id="learnedInput" placeholder="Ex.: Aprendi que dividir tarefas grandes em blocos de 25 minutos melhora meu foco."></textarea>
-      <button id="transformBtn" type="button">Transformar em Ação</button>
-      <div id="notice" class="notice"></div>
+      <label for="inputLearned">O que você aprendeu?</label>
+      <textarea id="inputLearned"></textarea>
 
-      <div id="result" class="result" aria-live="polite">
-        <div class="item">
-          <strong>Ação prática simples</strong>
-          <span id="actionText"></span>
+      <label for="inputArea">Área da Vida</label>
+      <select id="inputArea" required>
+        <option value="">Selecione uma área</option>
+        <option>Espiritualidade</option>
+        <option>Identidade</option>
+        <option>Energia & Ritmo</option>
+        <option>Trabalho & Provisão</option>
+        <option>Relacionamento</option>
+      </select>
+
+      <button id="generateBtn" class="button" type="button">Transformar em Ação</button>
+      <div id="homeNotice" class="notice"></div>
+
+      <div id="resultCards" class="cards" style="display:none;">
+        <article class="card"><strong>Ação</strong><span id="resAcao"></span></article>
+        <article class="card"><strong>Prazo</strong><span id="resPrazo"></span></article>
+        <article class="card"><strong>Regra mínima</strong><span id="resRegra"></span></article>
+      </div>
+    </section>
+
+    <section id="screen-history" class="screen">
+      <h2>Histórico</h2>
+      <p class="subtitle">Acompanhe e conclua suas ações.</p>
+
+      <div class="controls">
+        <select id="filterArea">
+          <option value="">Área: Todas</option>
+          <option>Espiritualidade</option>
+          <option>Identidade</option>
+          <option>Energia & Ritmo</option>
+          <option>Trabalho & Provisão</option>
+          <option>Relacionamento</option>
+        </select>
+
+        <select id="filterStatus">
+          <option value="all">Status: Todos</option>
+          <option value="pendente">Pendentes</option>
+          <option value="feito">Concluídos</option>
+        </select>
+
+        <input id="filterQuery" type="text" placeholder="Buscar por texto" />
+
+        <select id="filterSort">
+          <option value="recent">Mais recentes</option>
+          <option value="deadline">Prazo mais próximo</option>
+        </select>
+      </div>
+
+      <div id="historyList"></div>
+    </section>
+
+    <section id="screen-review" class="screen">
+      <h2>Revisão Semanal</h2>
+      <p class="subtitle">Fechar ciclo com clareza.</p>
+
+      <div class="row">
+        <div>
+          <label for="rev1">1) O que executei?</label>
+          <textarea id="rev1"></textarea>
         </div>
-        <div class="item">
-          <strong>Prazo</strong>
-          <span id="deadlineText"></span>
+        <div>
+          <label for="rev2">2) O que trouxe paz?</label>
+          <textarea id="rev2"></textarea>
         </div>
-        <div class="item">
-          <strong>Regra de execução mínima</strong>
-          <span id="ruleText"></span>
+      </div>
+      <div class="row">
+        <div>
+          <label for="rev3">3) O que gerou peso?</label>
+          <textarea id="rev3"></textarea>
         </div>
-        <div class="item" id="tagsWrap" style="display: none;">
-          <strong>Tags</strong>
-          <div id="tagsText"></div>
+        <div>
+          <label for="rev4">4) O que deve sair?</label>
+          <textarea id="rev4"></textarea>
         </div>
       </div>
 
-      <section class="history">
-        <h2>Histórico</h2>
-        <div class="toolbar">
-          <select id="areaFilter">
-            <option value="">Todas as áreas</option>
-            <option value="Espiritualidade">Espiritualidade</option>
-            <option value="Identidade">Identidade</option>
-            <option value="Energia & Ritmo">Energia & Ritmo</option>
-            <option value="Trabalho & Provisão">Trabalho & Provisão</option>
-            <option value="Relacionamento">Relacionamento</option>
-          </select>
-          <button id="weeklyReviewBtn" type="button" class="light-button">Revisão da Semana</button>
-        </div>
-        <div id="historyList"></div>
-      </section>
+      <button id="saveReviewBtn" class="button" type="button">Salvar revisão</button>
+      <div id="reviewNotice" class="notice"></div>
 
-      <section class="history">
-        <h2>Próximos prazos (24h/7d)</h2>
-        <div class="upcoming-grid">
-          <div class="upcoming-box">
-            <h3>Nas próximas 24h</h3>
-            <div id="upcoming24"></div>
-          </div>
-          <div class="upcoming-box">
-            <h3>Nos próximos 7 dias</h3>
-            <div id="upcoming7d"></div>
-          </div>
-        </div>
-      </section>
-
-      <section class="history">
-        <h2>Revisões Semanais</h2>
-        <div id="weeklyReviewForm" class="review-form">
-          <label for="reviewExecutei">1) O que executei?</label>
-          <textarea id="reviewExecutei"></textarea>
-
-          <label for="reviewPaz">2) O que trouxe paz?</label>
-          <textarea id="reviewPaz"></textarea>
-
-          <label for="reviewPeso">3) O que gerou peso?</label>
-          <textarea id="reviewPeso"></textarea>
-
-          <label for="reviewSair">4) O que deve sair?</label>
-          <textarea id="reviewSair"></textarea>
-
-          <div class="row">
-            <button id="saveWeeklyReviewBtn" type="button">Salvar revisão</button>
-            <button id="cancelWeeklyReviewBtn" type="button" class="light-button">Fechar</button>
-          </div>
-        </div>
-        <div id="weeklyReviewsList" class="review-list"></div>
-      </section>
+      <div id="reviewList" style="margin-top:14px;"></div>
     </section>
   </main>
 
   <script>
-    const learnedInput = document.getElementById('learnedInput');
-    const transformBtn = document.getElementById('transformBtn');
-    const result = document.getElementById('result');
-    const actionText = document.getElementById('actionText');
-    const deadlineText = document.getElementById('deadlineText');
-    const ruleText = document.getElementById('ruleText');
-    const tagsWrap = document.getElementById('tagsWrap');
-    const tagsText = document.getElementById('tagsText');
-    const historyList = document.getElementById('historyList');
-    const upcoming24 = document.getElementById('upcoming24');
-    const upcoming7d = document.getElementById('upcoming7d');
-    const notice = document.getElementById('notice');
-    const areaFilter = document.getElementById('areaFilter');
-    const weeklyReviewBtn = document.getElementById('weeklyReviewBtn');
-    const weeklyReviewForm = document.getElementById('weeklyReviewForm');
-    const saveWeeklyReviewBtn = document.getElementById('saveWeeklyReviewBtn');
-    const cancelWeeklyReviewBtn = document.getElementById('cancelWeeklyReviewBtn');
-    const weeklyReviewsList = document.getElementById('weeklyReviewsList');
-    const reviewExecutei = document.getElementById('reviewExecutei');
-    const reviewPaz = document.getElementById('reviewPaz');
-    const reviewPeso = document.getElementById('reviewPeso');
-    const reviewSair = document.getElementById('reviewSair');
+    const screens = {
+      home: document.getElementById('screen-home'),
+      history: document.getElementById('screen-history'),
+      review: document.getElementById('screen-review')
+    };
 
-    let historyCache = [];
+    const state = {
+      history: [],
+      pendingCount: 0
+    };
 
-    function sanitizeText(text) {
-      return text.replace(/\s+/g, ' ').trim();
-    }
+    const ui = {
+      navLinks: Array.from(document.querySelectorAll('[data-nav]')),
+      generateBtn: document.getElementById('generateBtn'),
+      inputLearned: document.getElementById('inputLearned'),
+      inputArea: document.getElementById('inputArea'),
+      homeNotice: document.getElementById('homeNotice'),
+      resultCards: document.getElementById('resultCards'),
+      resAcao: document.getElementById('resAcao'),
+      resPrazo: document.getElementById('resPrazo'),
+      resRegra: document.getElementById('resRegra'),
+      filterArea: document.getElementById('filterArea'),
+      filterStatus: document.getElementById('filterStatus'),
+      filterQuery: document.getElementById('filterQuery'),
+      filterSort: document.getElementById('filterSort'),
+      historyList: document.getElementById('historyList'),
+      saveReviewBtn: document.getElementById('saveReviewBtn'),
+      reviewNotice: document.getElementById('reviewNotice'),
+      reviewList: document.getElementById('reviewList'),
+      rev1: document.getElementById('rev1'),
+      rev2: document.getElementById('rev2'),
+      rev3: document.getElementById('rev3'),
+      rev4: document.getElementById('rev4')
+    };
 
     function escapeHtml(text) {
       return String(text || '')
@@ -447,264 +407,289 @@
         .replaceAll("'", '&#39;');
     }
 
-    function showNotice(message) {
-      notice.textContent = message;
-      notice.style.display = 'block';
+    function sanitize(text) {
+      return String(text || '').replace(/\s+/g, ' ').trim();
     }
 
-    function hideNotice() {
-      notice.style.display = 'none';
-      notice.textContent = '';
+    function showNotice(el, message) {
+      el.textContent = message;
+      el.classList.add('visible');
     }
 
-    function renderHistory(items) {
-      const selectedArea = areaFilter.value;
-      const filteredItems = selectedArea
-        ? items.filter((item) => item.area === selectedArea)
-        : items;
+    function hideNotice(el) {
+      el.textContent = '';
+      el.classList.remove('visible');
+    }
 
-      if (!filteredItems.length) {
-        historyList.innerHTML = '<p class="history-empty">Nenhum item para este filtro.</p>';
+    function getRoute() {
+      const route = location.hash.replace('#/', '');
+      if (route === 'history' || route === 'review') {
+        return route;
+      }
+      return 'home';
+    }
+
+    function renderRoute() {
+      const route = getRoute();
+      Object.entries(screens).forEach(([key, node]) => {
+        node.classList.toggle('active', key === route);
+      });
+      ui.navLinks.forEach((link) => {
+        link.classList.toggle('active', link.dataset.nav === route);
+      });
+    }
+
+    async function requestJson(url, options = {}) {
+      const res = await fetch(url, options);
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        const error = new Error(data.message || 'Erro de comunicação');
+        error.status = res.status;
+        error.payload = data;
+        throw error;
+      }
+      return data;
+    }
+
+    function renderHomeGate() {
+      const blocked = state.pendingCount >= 2;
+      ui.generateBtn.disabled = blocked;
+      if (blocked) {
+        showNotice(ui.homeNotice, 'Você já tem 2 ações pendentes. Conclua 1 para gerar outra.');
+      } else {
+        hideNotice(ui.homeNotice);
+      }
+    }
+
+    function renderHistory() {
+      let items = [...state.history];
+      const area = ui.filterArea.value;
+      const status = ui.filterStatus.value;
+      const query = sanitize(ui.filterQuery.value).toLowerCase();
+      const sort = ui.filterSort.value;
+
+      if (area) {
+        items = items.filter((item) => item.area === area);
+      }
+
+      if (status !== 'all') {
+        items = items.filter((item) => item.status === status);
+      }
+
+      if (query) {
+        items = items.filter((item) => {
+          const hay = `${item.texto} ${item.acao} ${item.prazo}`.toLowerCase();
+          return hay.includes(query);
+        });
+      }
+
+      if (sort === 'deadline') {
+        items.sort((a, b) => new Date(a.prazo_iso) - new Date(b.prazo_iso));
+      } else {
+        items.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+      }
+
+      if (!items.length) {
+        ui.historyList.innerHTML =
+          '<p class="empty">Nenhuma ação ainda. Gere sua primeira ação na tela Início.</p>';
         return;
       }
 
-      historyList.innerHTML = filteredItems
+      ui.historyList.innerHTML = items
         .map((item) => {
-          const acao = item.acao || item.acao_pratica || '';
-          const prazo = item.prazo || item.prazo_humano || '';
-          const regra = item.regraMinima || item.regra_minima || '';
-          const isDone = item.status === 'feito' || item.status === 'concluido';
+          const statusLabel = item.status === 'feito' ? 'concluído' : 'pendente';
+          const actionLabel = item.status === 'feito' ? 'Reabrir' : 'Concluir';
+          const nextStatus = item.status === 'feito' ? 'pendente' : 'feito';
           return `
-            <article class="history-item">
-              <span class="area-badge">${escapeHtml(item.area || 'Energia & Ritmo')}</span>
-              <span class="status">${item.status}</span>
-              <p><strong>Aprendizado:</strong> ${escapeHtml(item.texto)}</p>
-              <p><strong>Ação:</strong> ${escapeHtml(acao)}</p>
-              <p><strong>Prazo:</strong> ${escapeHtml(prazo)}</p>
-              <p><strong>Regra mínima:</strong> ${escapeHtml(regra)}</p>
-              <div class="row">
-                <button type="button" data-action="complete" data-id="${item.id}" ${isDone ? 'disabled' : ''}>
-                  ${isDone ? 'Feito' : 'Concluir'}
-                </button>
-                <button type="button" data-action="copy" data-id="${item.id}">Copiar ação</button>
-              </div>
-              <div class="history-meta">Criado em ${escapeHtml(item.created_at)}</div>
+            <article class="card history-item">
+              <span class="badge">${escapeHtml(item.area)}</span>
+              <span class="badge">${escapeHtml(statusLabel)}</span>
+              <div>${escapeHtml(item.acao)}</div>
+              <div class="meta">Prazo: ${escapeHtml(item.prazo)}</div>
+              <div class="meta">Criado em: ${escapeHtml(new Date(item.created_at).toLocaleString('pt-BR'))}</div>
+              <button class="button secondary" data-action="toggle-status" data-id="${item.id}" data-status="${nextStatus}">${actionLabel}</button>
             </article>
           `;
         })
         .join('');
     }
 
-    async function loadHistory() {
-      try {
-        const res = await fetch('/api/history');
-        if (!res.ok) {
-          throw new Error('Falha ao carregar histórico');
-        }
-
-        historyCache = await res.json();
-        renderHistory(historyCache);
-      } catch (_error) {
-        historyList.innerHTML = '<p class="history-empty">Erro ao carregar histórico.</p>';
-      }
+    async function refreshHistoryAndMeta() {
+      const [history, meta] = await Promise.all([
+        requestJson('/api/history'),
+        requestJson('/api/meta')
+      ]);
+      state.history = Array.isArray(history) ? history : [];
+      state.pendingCount = Number(meta?.pendentes || 0);
+      renderHomeGate();
+      renderHistory();
     }
 
-    async function loadUpcoming(windowValue, targetEl) {
-      try {
-        const res = await fetch(`/api/upcoming?window=${windowValue}`);
-        if (!res.ok) {
-          throw new Error('Falha ao carregar próximos prazos');
-        }
+    async function generateAction() {
+      const input = sanitize(ui.inputLearned.value);
+      const area = sanitize(ui.inputArea.value);
 
-        const data = await res.json();
-        const items = Array.isArray(data.items) ? data.items : [];
-        if (!items.length) {
-          targetEl.innerHTML = '<p class="history-empty">Sem prazos no período.</p>';
-          return;
-        }
-
-        targetEl.innerHTML = items
-          .slice(0, 5)
-          .map((item) => {
-            const prazo = item.prazo || item.prazo_humano || '';
-            const acao = item.acao || item.acao_pratica || '';
-            return `<p><strong>${escapeHtml(prazo)}</strong><br>${escapeHtml(acao)}</p>`;
-          })
-          .join('');
-      } catch (_error) {
-        targetEl.innerHTML = '<p class="history-empty">Erro ao carregar.</p>';
-      }
-    }
-
-    function renderWeeklyReviews(items) {
-      if (!Array.isArray(items) || !items.length) {
-        weeklyReviewsList.innerHTML = '<p class="history-empty">Sem revisões ainda.</p>';
+      if (!input) {
+        showNotice(ui.homeNotice, 'Escreva o que você aprendeu para gerar uma ação.');
         return;
       }
 
-      weeklyReviewsList.innerHTML = items
+      if (!area) {
+        showNotice(ui.homeNotice, 'Selecione a Área da Vida para continuar.');
+        return;
+      }
+
+      ui.generateBtn.disabled = true;
+      ui.generateBtn.classList.add('loading');
+
+      try {
+        const data = await requestJson('/api/praxis', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ input, area })
+        });
+
+        hideNotice(ui.homeNotice);
+        ui.resAcao.textContent = data.acao;
+        ui.resPrazo.textContent = data.prazo;
+        ui.resRegra.textContent = data.regraMinima || data.regra_minima;
+        ui.resultCards.style.display = 'grid';
+
+        if (data.warning) {
+          showNotice(ui.homeNotice, data.warning);
+        }
+
+        ui.inputLearned.value = '';
+        await refreshHistoryAndMeta();
+      } catch (error) {
+        if (error.status === 409 && error.payload?.error === 'limite_pendentes') {
+          showNotice(ui.homeNotice, error.payload.message);
+          await refreshHistoryAndMeta();
+          return;
+        }
+
+        if (String(error.payload?.message || '').includes('formato inválido')) {
+          showNotice(ui.homeNotice, 'Não entendi a resposta da IA — gere novamente.');
+          return;
+        }
+
+        showNotice(ui.homeNotice, 'Não foi possível gerar a ação agora. Tente novamente.');
+      } finally {
+        ui.generateBtn.classList.remove('loading');
+        renderHomeGate();
+      }
+    }
+
+    async function toggleStatus(id, status, button) {
+      button.disabled = true;
+      button.classList.add('loading');
+      try {
+        await requestJson(`/api/history/${id}`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ status })
+        });
+        await refreshHistoryAndMeta();
+      } catch (_error) {
+        alert('Não foi possível atualizar este item agora.');
+      } finally {
+        button.classList.remove('loading');
+      }
+    }
+
+    function renderReviews(items) {
+      const limited = (Array.isArray(items) ? items : []).slice(0, 10);
+      if (!limited.length) {
+        ui.reviewList.innerHTML = '<p class="empty">Nenhuma revisão registrada ainda.</p>';
+        return;
+      }
+
+      ui.reviewList.innerHTML = limited
         .map((item) => `
           <details>
-            <summary>${new Date(item.created_at).toLocaleString('pt-BR')}</summary>
-            <p><strong>O que executei?</strong><br>${escapeHtml(item.respostas?.executei || '')}</p>
-            <p><strong>O que trouxe paz?</strong><br>${escapeHtml(item.respostas?.trouxe_paz || '')}</p>
-            <p><strong>O que gerou peso?</strong><br>${escapeHtml(item.respostas?.gerou_peso || '')}</p>
-            <p><strong>O que deve sair?</strong><br>${escapeHtml(item.respostas?.deve_sair || '')}</p>
+            <summary>${escapeHtml(new Date(item.created_at).toLocaleString('pt-BR'))}</summary>
+            <p><strong>1) O que executei?</strong><br>${escapeHtml(item.respostas?.executei)}</p>
+            <p><strong>2) O que trouxe paz?</strong><br>${escapeHtml(item.respostas?.trouxe_paz)}</p>
+            <p><strong>3) O que gerou peso?</strong><br>${escapeHtml(item.respostas?.gerou_peso)}</p>
+            <p><strong>4) O que deve sair?</strong><br>${escapeHtml(item.respostas?.deve_sair)}</p>
           </details>
         `)
         .join('');
     }
 
-    async function loadWeeklyReviews() {
+    async function loadReviews() {
       try {
-        const res = await fetch('/api/weekly-reviews');
-        if (!res.ok) {
-          throw new Error('Falha ao carregar revisões');
-        }
-        const items = await res.json();
-        renderWeeklyReviews(items);
+        const items = await requestJson('/api/weekly-reviews');
+        renderReviews(items);
       } catch (_error) {
-        weeklyReviewsList.innerHTML = '<p class="history-empty">Erro ao carregar revisões.</p>';
+        ui.reviewList.innerHTML = '<p class="empty">Erro ao carregar revisões.</p>';
       }
     }
 
-    transformBtn.addEventListener('click', async () => {
-      const learned = sanitizeText(learnedInput.value);
+    async function saveReview() {
+      const respostas = {
+        executei: sanitize(ui.rev1.value),
+        trouxe_paz: sanitize(ui.rev2.value),
+        gerou_peso: sanitize(ui.rev3.value),
+        deve_sair: sanitize(ui.rev4.value)
+      };
 
-      if (!learned) {
-        showNotice('Escreva um aprendizado específico para gerar uma ação.');
+      if (!respostas.executei || !respostas.trouxe_paz || !respostas.gerou_peso || !respostas.deve_sair) {
+        showNotice(ui.reviewNotice, 'Preencha as 4 respostas antes de salvar.');
         return;
       }
 
-      transformBtn.disabled = true;
-      transformBtn.textContent = 'Gerando...';
+      ui.saveReviewBtn.disabled = true;
+      ui.saveReviewBtn.classList.add('loading');
 
       try {
-        const res = await fetch('/api/praxis', {
+        await requestJson('/api/weekly-reviews', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ input: learned })
+          body: JSON.stringify({ respostas })
         });
-
-        if (res.status === 409) {
-          const blocked = await res.json();
-          showNotice(blocked.message || 'Conclua uma ação pendente antes de criar outra.');
-          return;
-        }
-
-        if (!res.ok) {
-          const payload = await res.json().catch(() => null);
-          throw new Error(payload?.message || 'Falha ao gerar ação');
-        }
-
-        const data = await res.json();
-        hideNotice();
-        actionText.textContent = data.acao || data.acao_pratica || '';
-        deadlineText.textContent = data.prazo;
-        ruleText.textContent = data.regraMinima || data.regra_minima || '';
-        tagsWrap.style.display = 'block';
-        tagsText.innerHTML = `<span class="area-badge">${escapeHtml(data.area || 'Energia & Ritmo')}</span>`;
-
-        result.classList.add('visible');
-        learnedInput.value = '';
-        await loadHistory();
-        await Promise.all([loadUpcoming('24h', upcoming24), loadUpcoming('7d', upcoming7d)]);
+        hideNotice(ui.reviewNotice);
+        ui.rev1.value = '';
+        ui.rev2.value = '';
+        ui.rev3.value = '';
+        ui.rev4.value = '';
+        await loadReviews();
       } catch (_error) {
-        showNotice('Não foi possível gerar a ação agora. Tente novamente em instantes.');
+        showNotice(ui.reviewNotice, 'Não foi possível salvar a revisão agora.');
       } finally {
-        transformBtn.disabled = false;
-        transformBtn.textContent = 'Transformar em Ação';
+        ui.saveReviewBtn.classList.remove('loading');
+        ui.saveReviewBtn.disabled = false;
       }
-    });
+    }
 
-    historyList.addEventListener('click', async (event) => {
+    ui.generateBtn.addEventListener('click', generateAction);
+    ui.filterArea.addEventListener('change', renderHistory);
+    ui.filterStatus.addEventListener('change', renderHistory);
+    ui.filterSort.addEventListener('change', renderHistory);
+    ui.filterQuery.addEventListener('input', renderHistory);
+
+    ui.historyList.addEventListener('click', (event) => {
       const target = event.target;
       if (!(target instanceof HTMLButtonElement)) {
         return;
       }
 
-      const action = target.dataset.action;
-      const itemId = target.dataset.id;
-
-      if (!action) {
-        return;
-      }
-
-      if (action === 'complete' && itemId) {
-        const res = await fetch(`/api/history/${itemId}`, {
-          method: 'PATCH',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ status: 'feito' })
-        });
-        if (!res.ok) {
-          showNotice('Não foi possível concluir o item agora.');
-          return;
-        }
-        await loadHistory();
-        await Promise.all([loadUpcoming('24h', upcoming24), loadUpcoming('7d', upcoming7d)]);
-        return;
-      }
-
-      if (action === 'copy') {
-        const text = historyCache.find((item) => String(item.id) === String(itemId))?.acao || '';
-        if (text) {
-          await navigator.clipboard.writeText(text);
-          showNotice('Ação copiada.');
-        }
+      if (target.dataset.action === 'toggle-status') {
+        toggleStatus(target.dataset.id, target.dataset.status, target);
       }
     });
 
-    areaFilter.addEventListener('change', () => {
-      renderHistory(historyCache);
-    });
+    ui.saveReviewBtn.addEventListener('click', saveReview);
+    window.addEventListener('hashchange', renderRoute);
 
-    weeklyReviewBtn.addEventListener('click', () => {
-      weeklyReviewForm.classList.toggle('visible');
-    });
-
-    cancelWeeklyReviewBtn.addEventListener('click', () => {
-      weeklyReviewForm.classList.remove('visible');
-    });
-
-    saveWeeklyReviewBtn.addEventListener('click', async () => {
-      const payload = {
-        respostas: {
-          executei: sanitizeText(reviewExecutei.value),
-          trouxe_paz: sanitizeText(reviewPaz.value),
-          gerou_peso: sanitizeText(reviewPeso.value),
-          deve_sair: sanitizeText(reviewSair.value)
-        }
-      };
-
-      if (!payload.respostas.executei || !payload.respostas.trouxe_paz || !payload.respostas.gerou_peso || !payload.respostas.deve_sair) {
-        showNotice('Preencha as 4 respostas da revisão da semana.');
-        return;
+    (async () => {
+      if (!location.hash) {
+        location.hash = '#/home';
       }
-
-      const res = await fetch('/api/weekly-reviews', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
-      });
-
-      if (!res.ok) {
-        showNotice('Não foi possível salvar a revisão agora.');
-        return;
-      }
-
-      reviewExecutei.value = '';
-      reviewPaz.value = '';
-      reviewPeso.value = '';
-      reviewSair.value = '';
-      weeklyReviewForm.classList.remove('visible');
-      hideNotice();
-      await loadWeeklyReviews();
-    });
-
-    loadHistory();
-    loadWeeklyReviews();
-    loadUpcoming('24h', upcoming24);
-    loadUpcoming('7d', upcoming7d);
+      renderRoute();
+      await refreshHistoryAndMeta();
+      await loadReviews();
+    })();
   </script>
 </body>
 </html>
