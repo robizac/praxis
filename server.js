@@ -7,11 +7,13 @@ const { AREAS, normalizeArea, shouldBlockNewAction } = require('./domain');
 const { createWeeklyReview, listWeeklyReviews } = require('./weeklyReviewsStore');
 
 dotenv.config();
+console.log('PRAXIS iniciando em modo:', process.env.NODE_ENV);
 
 const app = express();
-const port = Number(process.env.PORT || 3000);
+const PORT = Number(process.env.PORT || 3000);
 
-const provider = (process.env.AI_PROVIDER || 'ollama').toLowerCase();
+const configuredProvider = (process.env.AI_PROVIDER || 'ollama').toLowerCase();
+const provider = process.env.NODE_ENV === 'production' ? 'openai' : configuredProvider;
 const ollamaBaseUrl = process.env.OLLAMA_BASE_URL || 'http://localhost:11434';
 const ollamaModel = process.env.OLLAMA_MODEL || 'mistral';
 const openaiModel = process.env.OPENAI_MODEL || 'gpt-4o-mini';
@@ -710,8 +712,9 @@ async function start() {
   try {
     await initDb();
     setupReminderScheduler();
-    app.listen(port, () => {
-      console.log(`PRAXIS rodando em http://localhost:${port} | provider=${provider}`);
+    app.listen(PORT, '0.0.0.0', () => {
+      console.log(`Servidor rodando na porta ${PORT}`);
+      console.log(`PRAXIS rodando em http://localhost:${PORT} | provider=${provider}`);
       console.log(`Áreas disponíveis: ${AREAS.join(', ')}`);
     });
   } catch (error) {
