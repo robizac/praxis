@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PRAXIS — transforme o que você aprende em ação prática</title>
+  <meta name="description" content="Escreva um aprendizado, escolha uma área da vida e receba uma ação simples, com prazo e regra mínima. Sem teoria, sem sobrecarga.">
+  <link rel="canonical" href="/">
+  <meta property="og:title" content="PRAXIS — transforme aprendizado em ação">
+  <meta property="og:description" content="Uma ação prática por vez. O PRAXIS transforma o que você aprende em execução.">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="/">
+  <meta name="twitter:card" content="summary">
+  <style>
+    :root {
+      --fg: #1d1d1d;
+      --bg: #f9f9f9;
+      --accent: #272727;
+      --muted: #555;
+      --border: #e6e6e6;
+    }
+    * {
+      box-sizing: border-box;
+    }
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+      color: var(--fg);
+      background: var(--bg);
+      line-height: 1.6;
+    }
+    header {
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      background: rgba(249, 249, 249, 0.9);
+      backdrop-filter: blur(6px);
+      border-bottom: 1px solid var(--border);
+    }
+    .nav {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      max-width: 1120px;
+      margin: 0 auto;
+      padding: 0.8rem 1.2rem;
+    }
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      text-decoration: none;
+      color: var(--fg);
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+    .logo-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: var(--accent);
+      box-shadow: 0 0 0 6px rgba(39, 39, 39, 0.08);
+    }
+    .nav-links {
+      display: flex;
+      gap: 1rem;
+      flex-wrap: wrap;
+      list-style: none;
+      margin: 0;
+      padding: 0;
+      font-size: 0.95rem;
+    }
+    .nav-links a {
+      text-decoration: none;
+      color: var(--fg);
+    }
+    .nav-actions {
+      display: flex;
+      gap: 0.6rem;
+      flex-wrap: wrap;
+    }
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.4rem;
+      padding: 0.6rem 0.9rem;
+      border-radius: 999px;
+      border: 1px solid transparent;
+      text-decoration: none;
+      font-weight: 600;
+      font-size: 0.95rem;
+    }
+    .btn-ghost {
+      border-color: var(--border);
+      color: var(--fg);
+    }
+    .btn-primary {
+      background: var(--accent);
+      color: #fff;
+    }
+    main {
+      display: flex;
+      flex-direction: column;
+      gap: 4rem;
+    }
+    section {
+      max-width: 1120px;
+      margin: 0 auto;
+      padding: 0 1.2rem;
+    }
+    .hero {
+      display: grid;
+      gap: 2rem;
+      padding-top: 3rem;
+      align-items: center;
+    }
+    @media (min-width: 900px) {
+      .hero {
+        grid-template-columns: 1.1fr 0.9fr;
+        padding-top: 4rem;
+      }
+    }
+    h1 {
+      font-size: clamp(2rem, 4vw, 3.6rem);
+      line-height: 1.12;
+      margin: 0;
+    }
+    .lead {
+      color: var(--muted);
+      font-size: clamp(1.05rem, 1.6vw, 1.25rem);
+      margin-top: 1rem;
+      max-width: 640px;
+    }
+    .actions {
+      display: flex;
+      gap: 0.8rem;
+      flex-wrap: wrap;
+      margin-top: 1.6rem;
+    }
+    .card-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 1rem;
+      margin-top: 2rem;
+    }
+    .card {
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 1.6rem;
+      background: #fff;
+      display: flex;
+      flex-direction: column;
+      gap: 0.8rem;
+    }
+    .muted {
+      color: var(--muted);
+    }
+    .steps {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 1rem;
+      counter-reset: steps;
+    }
+    .step {
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 1.6rem;
+      background: #fff;
+      display: flex;
+      flex-direction: column;
+      gap: 0.8rem;
+    }
+    .step::before {
+      counter-increment: steps;
+      content: counter(steps);
+      font-weight: 700;
+      color: var(--muted);
+    }
+    .pricing {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 1rem;
+      margin-top: 2rem;
+    }
+    .price-card {
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      padding: 2rem 1.6rem;
+      background: #fff;
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+    .price-card.highlight {
+      border-color: rgba(39, 39, 39, 0.4);
+      box-shadow: 0 20px 40px -30px rgba(39, 39, 39, 0.8);
+    }
+    .price {
+      font-size: clamp(2.2rem, 4vw, 3rem);
+      font-weight: 700;
+    }
+    .price-small {
+      color: var(--muted);
+      font-size: 1rem;
+    }
+    .list {
+      display: flex;
+      flex-direction: column;
+      gap: 0.6rem;
+      list-style: none;
+      margin: 0;
+      padding: 0;
+    }
+    .list li::before {
+      content: '·';
+      margin-right: 0.6rem;
+      color: var(--muted);
+    }
+    .faq {
+      display: grid;
+      gap: 0.8rem;
+      margin-top: 2rem;
+    }
+    .faq-item {
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      background: #fff;
+      overflow: hidden;
+    }
+    .faq-item details {
+      padding: 1rem 1.2rem;
+    }
+    .faq-item summary {
+      cursor: pointer;
+      font-weight: 600;
+    }
+    footer {
+      border-top: 1px solid var(--border);
+      margin-top: 4rem;
+    }
+    .footer-inner {
+      display: flex;
+      flex-direction: column;
+      gap: 0.6rem;
+      max-width: 1120px;
+      margin: 0 auto;
+      padding: 2rem 1.2rem;
+      color: var(--muted);
+    }
+    .footer-links {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1rem;
+      list-style: none;
+      margin: 0;
+      padding: 0;
+    }
+    .footer-links a {
+      color: var(--muted);
+      text-decoration: none;
+    }
+  </style>
+  <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "SoftwareApplication",
+      "name": "PRAXIS",
+      "applicationCategory": "ProductivityApplication",
+      "operatingSystem": "Web",
+      "inLanguage": "pt-BR",
+      "description": "Transforma o que você aprende em ação prática, uma ação por vez."
+    }
+  </script>
+  <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "FAQPage",
+      "mainEntity": [
+        {
+          "@type": "Question",
+          "name": "Preciso saber de IA para usar o PRAXIS?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Não. O PRAXIS gera a ação prática para você. Também dá a opção de usar sua própria chave (BYOK) caso prefira."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Posso cancelar minha assinatura?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Sim. Você pode cancelar pelo portal do cliente. O acesso permanece ativo até o fim do ciclo já pago."
+          }
+        }
+      ]
+    }
+  </script>
+</head>
+<body>
+  <header>
+    <nav class="nav" aria-label="Principal">
+      <a class="logo" href="/">
+        <span class="logo-dot" aria-hidden="true"></span>
+        <span>PRAXIS</span>
+      </a>
+      <ul class="nav-links">
+        <li><a href="#como-funciona">Como funciona</a></li>
+        <li><a href="#planos">Planos</a></li>
+        <li><a href="#faq">FAQ</a></li>
+      </ul>
+      <div class="nav-actions">
+        <a class="btn btn-ghost" href="/entrar">Entrar</a>
+        <a class="btn btn-primary" href="/cadastro">Começar grátis</a>
+      </div>
+    </nav>
+  </header>
+  <main>
+    <section class="hero" id="inicio">
+      <div>
+        <h1>Transforme o que você aprende em ação prática.</h1>
+        <p class="lead">Escreva um aprendizado e receba <em>uma</em> ação simples, com prazo e uma regra mínima. Sem teoria, sem sobrecarga.</p>
+        <div class="actions">
+          <a class="btn btn-primary" href="/cadastro">Começar grátis</a>
+          <a class="btn btn-ghost" href="#planos">Ver planos</a>
+        </div>
+      </div>
+      <div class="card">
+        <strong>Exemplo prático</strong>
+        <p class="muted">"Aprendi a dividir grandes tarefas em blocos de 10 minutos."</p>
+        <ul class="list">
+          <li><strong>Ação:</strong> Fazer 10 minutos da tarefa X agora.</li>
+          <li><strong>Prazo:</strong> Hoje</li>
+          <li><strong>Regra mínima:</strong> Começar por 10 minutos. Se cansar, parar.</li>
+        </ul>
+      </div>
+    </section>
+
+    <section id="problema">
+      <h2>O problema</h2>
+      <div class="card-grid">
+        <article class="card">
+          <strong>Você aprende muito e aplica pouco.</strong>
+          <p class="muted">Consome conteúdo, mas raramente traduz em execução.</p>
+        </article>
+        <article class="card">
+          <strong>Listas infinitas travam.</strong>
+          <p class="muted">Quanto maior a lista, menor a chance de começar.</p>
+        </article>
+        <article class="card">
+          <strong>Falta ritmo para sustentar o que importa.</strong>
+          <p class="muted">O que precisa é constância, não perfeição.</p>
+        </article>
+      </div>
+    </section>
+
+    <section id="como-funciona">
+      <h2>Como funciona</h2>
+      <div class="steps">
+        <article class="step">
+          <strong>1. Registre</strong>
+          <p class="muted">Escreva o que você acabou de aprender em poucas palavras.</p>
+        </article>
+        <article class="step">
+          <strong>2. Escolha</strong>
+          <p class="muted">Selecione a Área da Vida que esse aprendizado toca.</p>
+        </article>
+        <article class="step">
+          <strong>3. Execute</strong>
+          <p class="muted">Receba uma ação mínima, com prazo, regra mínima e lembrete.</p>
+        </article>
+      </div>
+    </section>
+
+    <section id="diferenciais">
+      <h2>Diferenciais</h2>
+      <div class="card-grid">
+        <article class="card">
+          <strong>Foco forçado</strong>
+          <p class="muted">No máximo 2 ações pendentes. Menos dispersão.</p>
+        </article>
+        <article class="card">
+          <strong>Prazos e lembretes</strong>
+          <p class="muted">Ajudam você a realmente colocar em prática.</p>
+        </article>
+        <article class="card">
+          <strong>Revisão semanal</strong>
+          <p class="muted">Fecha ciclos e ajusta o próximo passo.</p>
+        </article>
+        <article class="card">
+          <strong>Use sua própria chave (BYOK)</strong>
+          <p class="muted">Suporte a OpenAI, Anthropic, Gemini e Ollama.</p>
+        </article>
+      </div>
+    </section>
+
+    <section id="planos">
+      <h2>Planos</h2>
+      <p class="muted">Comece grátis. Evolua quando precisar de mais.</p>
+      <div class="pricing">
+        <article class="price-card">
+          <strong>Free</strong>
+          <div class="price">R$ 0<span class="price-small">/mês</span></div>
+          <ul class="list muted">
+            <li>10 gerações de IA/mês</li>
+            <li>Use sua própria chave (BYOK)</li>
+            <li>Até 20 lembretes ativos</li>
+            <li>Revisão semanal</li>
+          </ul>
+          <a class="btn btn-ghost" href="/cadastro">Começar grátis</a>
+        </article>
+        <article class="price-card highlight">
+          <strong>Pro</strong>
+          <div class="price">R$ 27<span class="price-small">/mês</span></div>
+          <ul class="list muted">
+            <li>300 gerações de IA/mês (modo gerenciado)</li>
+            <li>BYOK ilimitado</li>
+            <li>Até 500 lembretes ativos</li>
+            <li>Revisão semanal</li>
+            <li>Suporte prioritário</li>
+          </ul>
+          <a class="btn btn-primary" href="/cadastro?plan=pro">Assinar Pro</a>
+        </article>
+        <article class="price-card">
+          <strong>Pro Anual</strong>
+          <div class="price">R$ 197<span class="price-small">/ano</span></div>
+          <p class="muted">Economia de ~R$127/ano (≈ R$16,42/mês)</p>
+          <ul class="list muted">
+            <li>400 gerações de IA/mês (modo gerenciado)</li>
+            <li>BYOK ilimitado</li>
+            <li>Até 500 lembretes ativos</li>
+            <li>Revisão semanal</li>
+          </ul>
+          <a class="btn btn-ghost" href="/cadastro?plan=pro_annual">Assinar Pro Anual</a>
+        </article>
+      </div>
+    </section>
+
+    <section id="faq">
+      <h2>FAQ</h2>
+      <div class="faq">
+        <article class="faq-item">
+          <details>
+            <summary>Preciso saber de IA para usar o PRAXIS?</summary>
+            <p class="muted">Não. O PRAXIS gera a ação prática para você. Também dá a opção de usar sua própria chave (OpenAI, Anthropic, Gemini ou Ollama).</p>
+          </details>
+        </article>
+        <article class="faq-item">
+          <details>
+            <summary>Posso cancelar minha assinatura?</summary>
+            <p class="muted">Sim. Você pode cancelar pelo portal do cliente. O acesso permanece ativo até o fim do ciclo já pago.</p>
+          </details>
+        </article>
+        <article class="faq-item">
+          <details>
+            <summary>Meus dados ficam seguros?</summary>
+            <p class="muted">Sim. Os dados são escopados por usuário. Chaves BYOK são cifradas (AES-256-GCM) e nunca retornam ao cliente.</p>
+          </details>
+        </article>
+      </div>
+    </section>
+
+    <section id="cta-final">
+      <div class="card" style="text-align:center; gap:1rem;">
+        <h2 style="margin:0;">Pronto para transformar aprendizado em ação?</h2>
+        <p class="muted">Comece grátis em menos de 1 minuto.</p>
+        <div class="actions" style="justify-content:center;">
+          <a class="btn btn-primary" href="/cadastro">Começar grátis</a>
+        </div>
+      </div>
+    </section>
+  </main>
+  <footer>
+    <div class="footer-inner">
+      <div class="logo" style="justify-content:center;">
+        <span class="logo-dot" aria-hidden="true"></span>
+        <span>PRAXIS</span>
+      </div>
+      <ul class="footer-links" style="justify-content:center;">
+        <li><a href="/termos">Termos</a></li>
+        <li><a href="/privacidade">Privacidade</a></li>
+        <li><a href="/contato">Contato</a></li>
+      </ul>
+      <p style="text-align:center; margin:0;">© PRAXIS</p>
+    </div>
+  </footer>
+</body>
+</html>

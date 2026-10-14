@@ -1,3 +1,5 @@
+'use strict';
+
 const AREAS = [
   'Espiritualidade',
   'Identidade',
@@ -14,13 +16,4 @@ function normalizeArea(area) {
   return found || AREA_FALLBACK;
 }
 
-function shouldBlockNewAction(pendentes) {
-  return Number(pendentes) >= 2;
-}
-
-module.exports = {
-  AREAS,
-  AREA_FALLBACK,
-  normalizeArea,
-  shouldBlockNewAction
-};
+module.exports = { AREAS, AREA_FALLBACK, normalizeArea };

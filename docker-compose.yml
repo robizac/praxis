@@ -1,0 +1,39 @@
+# Ambiente de desenvolvimento: Postgres + app.
+# Uso: docker compose up --build
+# Sem o Postgres, o app também roda com SQLite local (basta `npm run dev`).
+
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: praxis
+      POSTGRES_PASSWORD: praxis
+      POSTGRES_DB: praxis
+    ports:
+      - '5432:5432'
+    volumes:
+      - praxis_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U praxis -d praxis']
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  app:
+    build: .
+    environment:
+      NODE_ENV: development
+      PORT: '3000'
+      DATABASE_URL: postgres://praxis:praxis@db:5432/praxis
+      SESSION_SECRET: dev-only-secret-dev-only-secret-1234
+      AI_PROVIDER: ${AI_PROVIDER:-ollama}
+      OLLAMA_BASE_URL: ${OLLAMA_BASE_URL:-http://host.docker.internal:11434}
+    ports:
+      - '3000:3000'
+    depends_on:
+      db:
+        condition: service_healthy
+    command: sh -c "node scripts/migrate.js && node src/http/server.js"
+
+volumes:
+  praxis_pgdata:

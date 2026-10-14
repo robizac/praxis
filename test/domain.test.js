@@ -1,7 +1,7 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
 
-const { normalizeArea, shouldBlockNewAction } = require('../domain');
+const { normalizeArea, shouldBlockNewAction } = require('../src/domain');
 
 test('normalizeArea usa fallback quando valor é inválido', () => {
   assert.equal(normalizeArea('nada a ver'), 'Energia & Ritmo');
