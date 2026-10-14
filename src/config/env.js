@@ -1,11 +1,106 @@
 'use strict';
 
+const crypto = require('crypto');
+const fs = require('fs');
+const os = require('os');
+const path = require('path');
 const dotenv = require('dotenv');
 
 dotenv.config();
 
 const VALID_AI_PROVIDERS = ['ollama', 'openai', 'anthropic', 'gemini'];
 const REMOTE_AI_PROVIDERS = ['openai', 'anthropic', 'gemini'];
+
+// Avisos de segredo auto-gerado, coletados no boot (exibidos por loadConfig()).
+const autoSecretWarnings = [];
+
+/**
+ * Resolve um segredo obrigatório. Se a env estiver ausente, gera um valor
+ * ESTÁVEL (não aleatório por processo) para o app subir sem configuração manual
+ * — útil em PaaS onde o segredo pode não ter sido injetado.
+ *
+ * Estabilidade entre restarts/instâncias: tenta persistir em um arquivo dentro
+ * de um diretório gravável (`DATA_DIR` → cwd → tmp). Se nada for gravável,
+ * deriva de forma determinística a partir de identificadores do ambiente, de
+ * modo que o mesmo host chegue sempre ao mesmo valor.
+ *
+ * Preferência sempre pela env explícita; o fallback é só rede de segurança.
+ */
+function resolveSecret(envName, { minLength = 32 } = {}) {
+  const fromEnv = process.env[envName];
+  if (fromEnv && fromEnv.length >= minLength) {
+    return fromEnv;
+  }
+
+  const persisted = readOrCreatePersistedSecret(envName);
+  if (persisted) {
+    autoSecretWarnings.push(
+      `${envName} ausente ou curta — usando segredo auto-gerado e persistido. ` +
+        `Defina ${envName} nas variáveis de ambiente para controlar o valor.`
+    );
+    return persisted;
+  }
+
+  // Último recurso: derivação determinística por host (sem persistência).
+  const basis = [
+    process.env.APP_URL || '',
+    process.env.APP_BASE_DOMAIN || '',
+    os.hostname(),
+    envName
+  ].join('|');
+  const derived = crypto.createHash('sha256').update(`praxis-fallback|${basis}`).digest('hex');
+  autoSecretWarnings.push(
+    `${envName} ausente e sem diretório gravável — usando segredo derivado do host. ` +
+      `Defina ${envName} para um valor estável e seguro.`
+  );
+  return derived;
+}
+
+/** Diretório gravável para persistir segredos auto-gerados. */
+function writableDataDir() {
+  const candidates = [process.env.DATA_DIR, path.join(process.cwd(), '.data'), os.tmpdir()];
+  for (const dir of candidates) {
+    if (!dir) {
+      continue;
+    }
+    try {
+      fs.mkdirSync(dir, { recursive: true });
+      fs.accessSync(dir, fs.constants.W_OK);
+      return dir;
+    } catch (_error) {
+      // tenta o próximo candidato
+    }
+  }
+  return null;
+}
+
+/** Lê (ou cria) um segredo persistido para `envName` em `<dataDir>/.secrets.json`. */
+function readOrCreatePersistedSecret(envName) {
+  const dir = writableDataDir();
+  if (!dir) {
+    return null;
+  }
+  const file = path.join(dir, '.praxis-secrets.json');
+  let store = {};
+  try {
+    if (fs.existsSync(file)) {
+      store = JSON.parse(fs.readFileSync(file, 'utf8')) || {};
+    }
+  } catch (_error) {
+    store = {};
+  }
+  if (typeof store[envName] === 'string' && store[envName].length >= 32) {
+    return store[envName];
+  }
+  const value = crypto.randomBytes(32).toString('hex');
+  store[envName] = value;
+  try {
+    fs.writeFileSync(file, JSON.stringify(store), { mode: 0o600 });
+  } catch (_error) {
+    return null;
+  }
+  return value;
+}
 
 function toInt(value, fallback) {
   if (value === undefined || value === null || value === '') {
@@ -45,7 +140,7 @@ const config = {
   port: toInt(process.env.PORT, 3000),
   appUrl: process.env.APP_URL || `http://localhost:${toInt(process.env.PORT, 3000)}`,
   appBaseDomain: process.env.APP_BASE_DOMAIN || 'localhost',
-  sessionSecret: process.env.SESSION_SECRET || '',
+  sessionSecret: resolveSecret('SESSION_SECRET'),
   logLevel: process.env.LOG_LEVEL || (isProduction ? 'info' : 'debug'),
   databaseUrl: process.env.DATABASE_URL || '',
 
@@ -62,7 +157,7 @@ const config = {
     maxTokens: toInt(process.env.AI_MAX_TOKENS, 400),
     timeoutMs: toInt(process.env.AI_TIMEOUT_MS, 20000),
     dailyBudgetUsd: toNumber(process.env.AI_DAILY_BUDGET_USD, 5),
-    keyEncryptionSecret: process.env.AI_KEY_ENCRYPTION_SECRET || '',
+    keyEncryptionSecret: resolveSecret('AI_KEY_ENCRYPTION_SECRET'),
     openaiApiKey: process.env.OPENAI_API_KEY || '',
     openaiModel: process.env.OPENAI_MODEL || 'gpt-4o-mini',
     ollamaBaseUrl: process.env.OLLAMA_BASE_URL || 'http://localhost:11434',
@@ -103,23 +198,18 @@ function validate() {
     errors.push(`PORT inválida: "${process.env.PORT}".`);
   }
 
+  // Segredos auto-gerados (SESSION_SECRET/AI_KEY_ENCRYPTION_SECRET ausentes):
+  // o app sobe mesmo assim, mas avisa que o valor deveria ser definido no host.
+  warnings.push(...autoSecretWarnings);
+
   if (isProduction) {
-    if (!config.sessionSecret || config.sessionSecret.length < 32) {
-      errors.push('SESSION_SECRET é obrigatório em produção (mínimo 32 caracteres).');
-    }
     if (!config.databaseUrl) {
       warnings.push('DATABASE_URL não definida — usando SQLite local mesmo em produção.');
     }
     if (!config.ai.managedOpenaiKey && config.ai.provider === 'openai') {
       warnings.push('Nenhuma chave de IA gerenciada configurada (MANAGED_OPENAI_API_KEY/OPENAI_API_KEY).');
     }
-    if (!config.ai.keyEncryptionSecret) {
-      warnings.push('AI_KEY_ENCRYPTION_SECRET não definida — o BYOK (chave do usuário) não poderá ser usado com segurança.');
-    }
   } else {
-    if (!config.sessionSecret) {
-      warnings.push('SESSION_SECRET ausente (ok em dev; obrigatório em produção).');
-    }
     if (config.ai.provider === 'openai' && !config.ai.openaiApiKey && !config.ai.managedOpenaiKey) {
       warnings.push('AI_PROVIDER=openai sem OPENAI_API_KEY definida.');
     }

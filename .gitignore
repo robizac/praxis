@@ -3,3 +3,4 @@ node_modules
 praxis.db
 praxis.db-*
 npm-debug.log*
+.data/
