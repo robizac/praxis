@@ -12,10 +12,24 @@ async function start() {
   warnings.forEach((warning) => logger.warn(warning));
 
   if (errors.length) {
-    throw new Error(`Configuração inválida:\n- ${errors.join('\n- ')}`);
+    // Saída explícita no stderr: garante que o motivo apareça nos logs do host
+    // (ex.: Kymus) mesmo que o transporte do logger não esteja pronto.
+    const message = `Configuração inválida — o processo não pode iniciar:\n- ${errors.join('\n- ')}`;
+    logger.fatal(message);
+    // eslint-disable-next-line no-console
+    console.error(`\n[boot] ${message}\n`);
+    throw new Error(message);
   }
 
-  await initDb();
+  try {
+    await initDb();
+  } catch (error) {
+    logger.fatal({ err: error }, 'Falha ao inicializar o banco de dados');
+    // eslint-disable-next-line no-console
+    console.error(`\n[boot] Falha ao inicializar o banco de dados: ${error.message}\n`);
+    throw error;
+  }
+
   setupReminderScheduler();
 
   const app = createApp();
