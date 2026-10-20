@@ -18,7 +18,25 @@
     <meta property="og:type" content="website" />
     <meta property="og:url" content="/" />
     <meta name="twitter:card" content="summary" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
     <link rel="stylesheet" href="styles.css" />
+    <script>
+      (function () {
+        try {
+          const stored = localStorage.getItem('praxis-theme');
+          const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+          const theme = stored || (prefersDark ? 'dark' : 'light');
+          document.documentElement.dataset.theme = theme;
+        } catch (e) {
+          document.documentElement.dataset.theme = 'light';
+        }
+      })();
+    </script>
     <script type="application/ld+json">
       {
         "@context": "https://schema.org",
@@ -68,6 +86,10 @@
           <li><a href="#faq">FAQ</a></li>
         </ul>
         <div class="nav-actions">
+          <button class="theme-toggle" type="button" data-theme-toggle aria-label="Alternar tema">
+            <span class="theme-toggle-icon" aria-hidden="true">◐</span>
+            <span class="theme-toggle-label">Tema</span>
+          </button>
           <a class="btn btn-ghost" href="/entrar">Entrar</a>
           <a class="btn btn-primary" href="/cadastro">Começar grátis</a>
         </div>
@@ -118,15 +140,15 @@
       <section id="como-funciona">
         <h2>Como funciona</h2>
         <div class="steps">
-          <article class="step">
+          <article class="step" data-step="01">
             <strong>1. Registre</strong>
             <p class="muted">Escreva o que você acabou de aprender em poucas palavras.</p>
           </article>
-          <article class="step">
+          <article class="step" data-step="02">
             <strong>2. Escolha</strong>
             <p class="muted">Selecione a Área da Vida que esse aprendizado toca.</p>
           </article>
-          <article class="step">
+          <article class="step" data-step="03">
             <strong>3. Execute</strong>
             <p class="muted">Receba uma ação mínima, com prazo, regra mínima e lembrete.</p>
           </article>
@@ -254,5 +276,32 @@
         <p class="footer-note">© PRAXIS</p>
       </div>
     </footer>
+    <script>
+      (function () {
+        const key = 'praxis-theme';
+        const toggle = document.querySelector('[data-theme-toggle]');
+        const icon = toggle ? toggle.querySelector('.theme-toggle-icon') : null;
+        const label = toggle ? toggle.querySelector('.theme-toggle-label') : null;
+
+        function apply(theme) {
+          const t = theme === 'dark' ? 'dark' : 'light';
+          document.documentElement.dataset.theme = t;
+          try {
+            localStorage.setItem(key, t);
+          } catch {}
+          if (icon) icon.textContent = t === 'dark' ? '◑' : '◐';
+          if (label) label.textContent = t === 'dark' ? 'Escuro' : 'Claro';
+        }
+
+        if (toggle) {
+          const current = document.documentElement.dataset.theme === 'dark' ? 'dark' : 'light';
+          apply(current);
+          toggle.addEventListener('click', function () {
+            const now = document.documentElement.dataset.theme === 'dark' ? 'dark' : 'light';
+            apply(now === 'dark' ? 'light' : 'dark');
+          });
+        }
+      })();
+    </script>
   </body>
 </html>
