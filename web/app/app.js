@@ -825,6 +825,36 @@ async function refreshData() {
   await loadAdmin();
 }
 
+const THEME_KEY = 'praxis-theme';
+
+function applyTheme(theme) {
+  const t = theme === 'dark' ? 'dark' : 'light';
+  document.documentElement.dataset.theme = t;
+  try {
+    localStorage.setItem(THEME_KEY, t);
+  } catch {}
+  const toggle = document.getElementById('themeToggle');
+  if (toggle) {
+    const icon = toggle.querySelector('.theme-toggle-icon');
+    const label = toggle.querySelector('.theme-toggle-label');
+    if (icon) icon.textContent = t === 'dark' ? '◑' : '◐';
+    if (label) label.textContent = t === 'dark' ? 'Escuro' : 'Claro';
+  }
+}
+
+function getInitialTheme() {
+  try {
+    const stored = localStorage.getItem(THEME_KEY);
+    if (stored === 'dark' || stored === 'light') return stored;
+  } catch {}
+  return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+}
+
+function toggleTheme() {
+  const current = document.documentElement.dataset.theme === 'dark' ? 'dark' : 'light';
+  applyTheme(current === 'dark' ? 'light' : 'dark');
+}
+
 function readHash() {
   return location.hash.replace('#/', '');
 }
@@ -982,6 +1012,11 @@ function maybeShowReset(hash) {
 }
 
 async function bootstrap() {
+  applyTheme(getInitialTheme());
+  const themeToggle = document.getElementById('themeToggle');
+  if (themeToggle) {
+    themeToggle.addEventListener('click', toggleTheme);
+  }
   const hash = readHash();
   await ensureCsrf();
 
