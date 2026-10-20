@@ -17,7 +17,7 @@ function isTestProcess() {
 }
 
 /**
- * Resolve o arquivo SQLite deste processo.
+ * Resolve o arquivo SQLite deste processo e se ele é descartável.
  *
  * Produção/dev: arquivo único em `praxis.db` na raiz do projeto (mesmo caminho
  * do legado, ignorado no git).
@@ -28,37 +28,71 @@ function isTestProcess() {
  * falhariam com `duplicate column name`. Por isso cada processo de teste usa um
  * arquivo isolado e descartável.
  *
- * Pode ser sobrescrito por `PRAXIS_DB_FILE` (útil para inspecionar um arquivo
- * específico ou reaproveitar um banco).
+ * `PRAXIS_DB_FILE` tem precedência e NUNCA é tratado como temporário: quem o
+ * define é dono do arquivo e espera que ele persista.
  */
-function resolveDbPath() {
-  if (process.env.PRAXIS_DB_FILE) {
-    return process.env.PRAXIS_DB_FILE;
+function resolveDb() {
+  const override = process.env.PRAXIS_DB_FILE;
+  if (override) {
+    return { path: override, temporary: false };
   }
+
   if (isTestProcess()) {
-    const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'praxis-test-db-'));
-    return path.join(dir, 'praxis.db');
+    try {
+      const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'praxis-test-db-'));
+      return { path: path.join(dir, 'praxis.db'), temporary: true, dir };
+    } catch (_error) {
+      // Sem diretório temporário gravável: cai para um arquivo único por
+      // processo ao lado do banco de dev (evita corrida sem depender do tmp).
+      const fallback = path.join(__dirname, '..', '..', `.test-praxis-${process.pid}.db`);
+      return { path: fallback, temporary: true, dir: null };
+    }
   }
+
   // Mantém o arquivo no root do projeto (mesmo caminho do legado), ignorado no git.
-  return path.join(__dirname, '..', '..', 'praxis.db');
+  return { path: path.join(__dirname, '..', '..', 'praxis.db'), temporary: false };
 }
 
-const dbPath = resolveDbPath();
-const isTemporaryDb = isTestProcess();
+const resolved = resolveDb();
+const dbPath = resolved.path;
 const db = new sqlite3.Database(dbPath);
 
-// Em testes, remove o arquivo temporário (e o WAL) ao encerrar o processo.
-if (isTemporaryDb) {
-  process.on('exit', () => {
+/**
+ * Remove os arquivos do banco temporário deste processo. Best-effort: nunca
+ * deve lançar.
+ *
+ * Importante: NÃO fechamos a conexão aqui. Este handler roda em 'exit' (e em
+ * sinais), quando o ambiente do Node já está sendo destruído; chamar
+ * `db.close()` nesse momento provoca crash nativo no binding do sqlite3.
+ * Em POSIX, apagar o arquivo com a conexão aberta é seguro.
+ */
+function cleanupTemporaryDb() {
+  for (const suffix of ['', '-wal', '-shm', '-journal']) {
     try {
-      fs.rmSync(dbPath, { force: true });
-      fs.rmSync(`${dbPath}-wal`, { force: true });
-      fs.rmSync(`${dbPath}-shm`, { force: true });
-      fs.rmdirSync(path.dirname(dbPath));
+      fs.rmSync(`${dbPath}${suffix}`, { force: true });
     } catch (_error) {
-      // limpeza best-effort; o SO cuida do diretório temporário depois
+      // arquivo ainda em uso ou inexistente
     }
-  });
+  }
+  if (resolved.dir) {
+    try {
+      fs.rmSync(resolved.dir, { recursive: true, force: true });
+    } catch (_error) {
+      // diretório pode conter arquivos de outro processo
+    }
+  }
+}
+
+// Em testes, limpa o arquivo temporário no encerramento normal E em sinais
+// (Ctrl+C, runner matando o worker), que não disparam 'exit'.
+if (resolved.temporary) {
+  process.once('exit', cleanupTemporaryDb);
+  for (const signal of ['SIGINT', 'SIGTERM']) {
+    process.once(signal, () => {
+      cleanupTemporaryDb();
+      process.exit(0);
+    });
+  }
 }
 
 // Habilita integridade referencial (necessário para ON DELETE CASCADE).
