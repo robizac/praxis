@@ -39,9 +39,9 @@ Estrutura atual:
 ```
 src/
   config/        env validada, constantes
-  domain/        regras puras (areas, limits, plans, errors)
+  domain/        regras puras (areas, limits, plans, praxis, reminders, errors)
   http/          app, server, middleware, routes
-  services/      casos de uso (ai, praxis, history, review, reminder, usage, billing, telegram, settings)
+  services/      casos de uso (praxis/history, review, reminder, usage, billing, account, auth, settings, telegram, audit, ai/)
   repositories/  SQL (sempre escopado por user_id)
   integrations/  stripe, telegram, crypto
   jobs/          worker de lembretes
@@ -70,6 +70,32 @@ web/
 - Segurança: Argon2id, cookie httpOnly, CSRF, helmet, rate limit.
 - Front: mobile-first, `escapeHtml` ao injetar dados, estados vazio/erro/carregando.
 
+Exemplos (o "bom" ilustra a regra; evite o "ruim"):
+
+```js
+// Bom: escopo por user_id da sessão, erro tipado, serviço sem req/res.
+async function update(userId, id, fields) {
+  const item = await praxisRepo.getById(userId, id); // nunca confia no cliente
+  if (!item) throw new NotFoundError('Item não encontrado.');
+  return praxisRepo.updateFields(userId, id, fields);
+}
+
+// Ruim: SQL na rota, userId vindo do corpo, erro 500 solto, callbacks.
+router.patch('/items/:id', (req, res) => {
+  db.run('UPDATE items SET status=? WHERE id=' + req.params.id, (err) => { // SQL na rota + concat
+    if (err) return res.status(500).send('erro'); // sem AppError
+  });
+});
+```
+
+```js
+// Bom: idioma único de erro.
+throw new ConflictError('Você já tem 2 ações pendentes.', 'limite_pendentes', { pendentes });
+
+// Ruim: cada rota inventa um shape.
+res.status(409).json({ mensagem: 'limite', ok: false });
+```
+
 Ver [`docs/04-padroes-e-convencoes.md`](docs/04-padroes-e-convencoes.md).
 
 ## Comandos
@@ -78,14 +104,74 @@ Ver [`docs/04-padroes-e-convencoes.md`](docs/04-padroes-e-convencoes.md).
 npm i                  # instalar
 npm run dev            # desenvolvimento (nodemon)
 npm start              # produção
-npm test               # node --test
+npm test               # node --test (suíte completa)
+npm run lint           # oxlint (análise estática)
+npm run format         # prettier --write (formatação)
+npm run check          # lint + format:check + test
 npm run migrate        # aplica migrações (idempotente)
+npm run migrate:legacy # associa dados legados (user_id NULL) a um dono
 npm run stripe:setup   # cria produtos/preços de teste na Stripe e imprime os IDs
 npm run worker         # worker de lembretes (telegram/e-mail), fora do processo web
 ```
 
 > Em produção, **não** rode o cron de lembretes dentro do processo web: use
 > `npm run worker` como processo separado.
+
+## Testes
+
+- Rode com `npm test` (Node `--test`, sem framework externo).
+- **Todo bug corrigido ganha um teste de regressão** que falharia antes da correção.
+  Prefira testar a **borda** que expôs o bug (datas inválidas, entrada fora de faixa,
+  isolamento por usuário) a reescrever o caminho feliz.
+- Não use mocks para o que o projeto já exercita de verdade (SQLite em memória nos
+  testes de integração; `skip = db.dialect !== 'sqlite'` quando o caso só vale em SQLite).
+- Testes ficam em `test/*.test.js`, um arquivo por área (`domain`, `auth`, `billing`...).
+
+## Lint e formatação (parte do loop de feedback)
+
+- **Ao terminar de mexer na lógica, rode:**
+  ```bash
+  npm run lint     # oxlint (rápido; falha em erros de correção)
+  npm run format   # prettier --write (formata tudo; ignore arquivos gerados)
+  ```
+- Rode a formatação **por último**, depois que a lógica estiver pronta.
+- `npm run check` encadeia lint + format:check + test (use antes de abrir PR).
+- Estilo é responsabilidade do Prettier (`.prettierrc.json`), não do agente: não
+  discuta indentação/vírgula. Convenção de `catch (_error)` (prefixo `_`) é aceita.
+
+## MCP servers (poucos, de propósito)
+
+Cada MCP server **paga contexto** descrevendo suas tools ao modelo, mesmo sem uso.
+
+- **Mantenha pouquíssimos servers.** Só adicione um quando houver necessidade real.
+- Hoje temos **um**: `context7` (docs atuais das libs). Tools remotas usam o
+  prefixo `<server>_<tool>` (ex.: `context7_query-docs`).
+- Para **desligar sem apagar** a configuração: `"disabled": true` no server —
+  o OpenCode não conecta nem descreve as tools.
+- Para **negar uma tool específica** de um MCP, use a permissão com a ação
+  `<server>_<tool>` no bloco `permissions` do `opencode.jsonc`.
+- Prefira **skills** a MCPs quando a necessidade for só "um prompt reutilizável".
+
+## Plugins do OpenCode (`\.opencode/plugins/`)
+
+Plugins estendem o harness (hooks, transforms, tools). Ficam em `.opencode/plugins/`
+e têm dependência em `.opencode/package.json` (`@opencode/plugin`, versão igual à
+do CLI — hoje 2.0.32). `node_modules` e `logs/` são ignorados pelo git.
+
+- **Hook x Transform** (a distinção que mais confunde):
+  - **Hook** intercepta **operação viva**: `ctx.tool.hook("execute.before"/"execute.after")`,
+    `ctx.session.hook("context"/"http.request"/"http.response")`.
+  - **Transform** muda a **definição** exposta ao modelo (descrição/input de tool,
+    agent…): `ctx.tool.transform((tools) => tools.update("nome", (t) => { ... }))`.
+    Não altera a implementação.
+- **Tool custom** é sempre registrada via plugin: `tools.add({ name, description, input, ... })`.
+  Use prefixo do projeto para evitar colisão de nomes normalizados.
+- **Hooks devem ser rápidos e tolerantes a erro** (um throw pode falhar a operação
+  interceptada). Nunca derrube uma tool por falha de log.
+- Plugins atuais:
+  - `praxis.migrations` → tool `praxis_check_migrations` (migrações isoladas em SQLite).
+  - `praxis.audit-log` → hooks que registram comandos de shell e edições em `logs/`.
+  - `praxis.tool-hints` → transform que enriquece a descrição de `praxis_check_migrations`.
 
 ## Documentos-chave
 
