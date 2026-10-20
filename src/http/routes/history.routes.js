@@ -32,7 +32,15 @@ function parseId(value) {
 
 router.get('/history', async (req, res, next) => {
   try {
-    res.json(await praxisService.listHistory(req.user.id, 100));
+    const result = await praxisService.listHistory(req.user.id, {
+      area: req.query.area,
+      status: req.query.status,
+      q: req.query.q || req.query.query,
+      sort: req.query.sort,
+      page: req.query.page,
+      pageSize: req.query.pageSize || req.query.limit
+    });
+    res.json(result);
   } catch (error) {
     next(error);
   }

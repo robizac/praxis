@@ -90,6 +90,7 @@
             <a href="#/history" data-nav="history">Histórico</a>
             <a href="#/review" data-nav="review">Revisão Semanal</a>
             <a href="#/account" data-nav="account">Conta</a>
+            <a href="#/admin" data-nav="admin" hidden>Admin</a>
           </nav>
           <div class="user-box">
             <span id="userEmail" class="user-email"></span>
@@ -164,6 +165,13 @@
           </div>
 
           <div id="historyList"></div>
+
+          <h3>Próximos prazos</h3>
+          <select id="upcomingWindow">
+            <option value="24h">Próximas 24h</option>
+            <option value="7d">Próximos 7 dias</option>
+          </select>
+          <div id="upcomingList"></div>
         </section>
 
         <section id="screen-review" class="screen">
@@ -303,7 +311,36 @@
             </div>
           </div>
 
+          <div class="card">
+            <strong>Perfil</strong>
+            <label for="profileName">Nome</label>
+            <input id="profileName" type="text" />
+            <label for="profileTimezone">Fuso horário</label>
+            <input id="profileTimezone" type="text" placeholder="America/Sao_Paulo" />
+            <button id="saveProfileBtn" class="button secondary" type="button">
+              Salvar perfil
+            </button>
+          </div>
+
+          <div class="card">
+            <strong>Trocar senha</strong>
+            <label for="currentPassword">Senha atual</label>
+            <input id="currentPassword" type="password" />
+            <label for="newPassword">Nova senha</label>
+            <input id="newPassword" type="password" />
+            <button id="changePasswordBtn" class="button secondary" type="button">
+              Trocar senha
+            </button>
+          </div>
+
           <div id="accountNotice" class="notice"></div>
+        </section>
+
+        <section id="screen-admin" class="screen">
+          <h2>Admin</h2>
+          <p class="subtitle">Visão geral do sistema.</p>
+          <div id="adminSummary" class="meta">Carregando…</div>
+          <div id="adminUsers"></div>
         </section>
       </div>
     </main>

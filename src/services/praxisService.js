@@ -122,9 +122,27 @@ async function generate({ userId, planId = 'free', texto, area }) {
   };
 }
 
-async function listHistory(userId, limit = 100) {
-  const rows = await praxisRepo.listRecent(userId, limit);
-  return rows.map(mapRow);
+async function listHistory(userId, filters = {}) {
+  const page = Math.max(1, Number(filters.page) || 1);
+  const pageSize = Math.min(
+    100,
+    Math.max(1, Number(filters.pageSize) || (filters.limit ? Number(filters.limit) : 20))
+  );
+  const { rows, total } = await praxisRepo.listFiltered(userId, {
+    area: filters.area,
+    status: filters.status,
+    q: filters.q || filters.query,
+    sort: filters.sort,
+    page,
+    pageSize
+  });
+  return {
+    items: rows.map(mapRow),
+    total,
+    page,
+    pageSize,
+    hasMore: page * pageSize < total
+  };
 }
 
 async function getById(userId, id) {

@@ -281,11 +281,45 @@ async function resetPassword({ token, password: rawPassword, ip }) {
   return { ok: true };
 }
 
+async function updateProfile(userId, { name, timezone } = {}) {
+  const user = await usersRepo.findById(userId);
+  if (!user) {
+    throw new NotFoundError('Usuário não encontrado.');
+  }
+  const nextName =
+    name === undefined || name === null || String(name).trim() === ''
+      ? user.name
+      : String(name).trim();
+  if (name !== undefined && name !== null && String(name).trim() !== '') {
+    assertValidName(nextName);
+  }
+  const nextTimezone = timezone || user.timezone;
+  const updated = await usersRepo.updateProfile(userId, { name: nextName, timezone: nextTimezone });
+  return publicUser(updated);
+}
+
+async function changePassword(userId, { currentPassword, newPassword } = {}) {
+  const user = await usersRepo.findById(userId);
+  if (!user) {
+    throw new NotFoundError('Usuário não encontrado.');
+  }
+  const ok = await password.verify(String(currentPassword || ''), user.password_hash);
+  if (!ok) {
+    throw new UnauthorizedError('Senha atual incorreta.', 'invalid_current_password');
+  }
+  assertValidPassword(newPassword);
+  const hash = await password.hash(newPassword);
+  await usersRepo.updatePassword(userId, hash);
+  return { ok: true };
+}
+
 module.exports = {
   SESSION_TTL_DAYS,
   publicUser,
   createSession,
   register,
+  updateProfile,
+  changePassword,
   login,
   logout,
   resolveUserFromSession,

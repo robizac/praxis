@@ -2,7 +2,8 @@ const screens = {
   home: document.getElementById('screen-home'),
   history: document.getElementById('screen-history'),
   review: document.getElementById('screen-review'),
-  account: document.getElementById('screen-account')
+  account: document.getElementById('screen-account'),
+  admin: document.getElementById('screen-admin')
 };
 
 const state = {
@@ -30,6 +31,8 @@ const ui = {
   exportHistoryCsvBtn: document.getElementById('exportHistoryCsvBtn'),
   exportHistoryMdBtn: document.getElementById('exportHistoryMdBtn'),
   historyList: document.getElementById('historyList'),
+  upcomingWindow: document.getElementById('upcomingWindow'),
+  upcomingList: document.getElementById('upcomingList'),
   saveReviewBtn: document.getElementById('saveReviewBtn'),
   reviewNotice: document.getElementById('reviewNotice'),
   reviewList: document.getElementById('reviewList'),
@@ -58,7 +61,15 @@ const ui = {
   deleteAccountBtn: document.getElementById('deleteAccountBtn'),
   saveByokBtn: document.getElementById('saveByokBtn'),
   removeByokBtn: document.getElementById('removeByokBtn'),
-  accountNotice: document.getElementById('accountNotice')
+  accountNotice: document.getElementById('accountNotice'),
+  adminSummary: document.getElementById('adminSummary'),
+  adminUsers: document.getElementById('adminUsers'),
+  profileName: document.getElementById('profileName'),
+  profileTimezone: document.getElementById('profileTimezone'),
+  saveProfileBtn: document.getElementById('saveProfileBtn'),
+  currentPassword: document.getElementById('currentPassword'),
+  newPassword: document.getElementById('newPassword'),
+  changePasswordBtn: document.getElementById('changePasswordBtn')
 };
 
 const authUi = {
@@ -125,7 +136,7 @@ function hideNotice(el) {
 
 function getRoute() {
   const route = location.hash.replace('#/', '');
-  if (route === 'history' || route === 'review' || route === 'account') {
+  if (route === 'history' || route === 'review' || route === 'account' || route === 'admin') {
     return route;
   }
   return 'home';
@@ -198,6 +209,47 @@ async function loadSummary() {
   }
 }
 
+async function loadUpcoming() {
+  if (!ui.upcomingList) return;
+  try {
+    const data = await requestJson(
+      `/api/upcoming?window=${encodeURIComponent(ui.upcomingWindow.value || '24h')}`
+    );
+    const items = Array.isArray(data.items) ? data.items : [];
+    if (!items.length) {
+      ui.upcomingList.innerHTML = '<p class="empty">Nenhum prazo próximo.</p>';
+      return;
+    }
+    ui.upcomingList.innerHTML = items
+      .map(
+        (item) =>
+          `<article class="card history-item"><span class="badge">${escapeHtml(item.area)}</span><div>${escapeHtml(item.acao)}</div><div class="meta">Prazo: ${escapeHtml(item.prazo)}</div></article>`
+      )
+      .join('');
+  } catch (_error) {
+    ui.upcomingList.innerHTML =
+      '<p class="empty">Não foi possível carregar os próximos prazos.</p>';
+  }
+}
+
+async function loadAdmin() {
+  if (!ui.adminSummary) return;
+  try {
+    const summary = await requestJson('/api/admin/summary');
+    ui.adminSummary.textContent = `Usuários: ${summary.users} · Gerações IA: ${summary.aiUsage.generations} · Custo: $${summary.aiUsage.costUsd.toFixed(4)}`;
+    const users = await requestJson('/api/admin/users');
+    ui.adminUsers.innerHTML =
+      (Array.isArray(users) ? users : [])
+        .map(
+          (u) =>
+            `<div class="meta">${escapeHtml(u.email)} — ${escapeHtml(u.role)} — ${escapeHtml(u.plan || 'free')} (${escapeHtml(u.subscription_status || 'none')})</div>`
+        )
+        .join('') || '<p class="empty">Nenhum usuário.</p>';
+  } catch (_error) {
+    ui.adminSummary.textContent = 'Acesso negado ou erro ao carregar admin.';
+  }
+}
+
 function renderHomeGate() {
   const blocked = state.pendingCount >= 2;
   ui.generateBtn.disabled = blocked;
@@ -255,6 +307,8 @@ function renderHistory() {
               <div class="meta">Prazo: ${escapeHtml(item.prazo)}</div>
               <div class="meta">Criado em: ${escapeHtml(new Date(item.created_at).toLocaleString('pt-BR'))}</div>
               <button class="button secondary" data-action="toggle-status" data-id="${item.id}" data-status="${nextStatus}">${actionLabel}</button>
+              <button class="button secondary small" data-action="edit" data-id="${item.id}">Editar</button>
+              <button class="button secondary small" data-action="delete" data-id="${item.id}">Excluir</button>
             </article>
           `;
     })
@@ -263,14 +317,15 @@ function renderHistory() {
 
 async function refreshHistoryAndMeta() {
   const [history, meta] = await Promise.all([
-    requestJson('/api/history'),
+    requestJson('/api/history?pageSize=100'),
     requestJson('/api/meta')
   ]);
-  state.history = Array.isArray(history) ? history : [];
+  state.history = Array.isArray(history) ? history : history.items || [];
   state.pendingCount = Number(meta?.pendentes || 0);
   renderHomeGate();
   renderHistory();
   loadSummary();
+  loadUpcoming();
 }
 
 async function generateAction() {
@@ -338,6 +393,47 @@ async function generateAction() {
   } finally {
     ui.generateBtn.classList.remove('loading');
     renderHomeGate();
+  }
+}
+
+async function editItem(id) {
+  const item = state.history.find((h) => String(h.id) === String(id));
+  if (!item) return;
+  const areas = [
+    'Espiritualidade',
+    'Identidade',
+    'Energia & Ritmo',
+    'Trabalho & Provisão',
+    'Relacionamento'
+  ];
+  const area = window.prompt(`Nova área (${areas.join(', ')})`, item.area);
+  if (area === null) return;
+  const tagsInput = window.prompt('Tags (separadas por vírgula)', (item.tags || []).join(', '));
+  if (tagsInput === null) return;
+  const tags = tagsInput
+    .split(',')
+    .map((t) => t.trim())
+    .filter(Boolean)
+    .slice(0, 10);
+  try {
+    await requestJson(`/api/history/${id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ area: area.trim() || item.area, tags })
+    });
+    await refreshHistoryAndMeta();
+  } catch (_error) {
+    alert('Não foi possível editar esta ação.');
+  }
+}
+
+async function deleteItem(id) {
+  if (!window.confirm('Excluir esta ação?')) return;
+  try {
+    await requestJson(`/api/history/${id}`, { method: 'DELETE' });
+    await refreshHistoryAndMeta();
+  } catch (_error) {
+    alert('Não foi possível excluir esta ação.');
   }
 }
 
@@ -580,7 +676,16 @@ async function saveReminderSettings() {
   }
 }
 
+async function loadProfile() {
+  try {
+    const data = await requestJson('/api/account/profile');
+    if (ui.profileName) ui.profileName.value = data.name || '';
+    if (ui.profileTimezone) ui.profileTimezone.value = data.timezone || '';
+  } catch (_error) {}
+}
+
 async function loadAccount() {
+  loadProfile();
   try {
     const [usage, cred, subscription, plans] = await Promise.all([
       requestJson('/api/ai/usage'),
@@ -705,6 +810,8 @@ function showApp(user) {
   authUi.screen.classList.remove('active');
   authUi.shell.hidden = false;
   authUi.userEmail.textContent = user?.email || '';
+  const adminLink = document.querySelector('[data-nav="admin"]');
+  if (adminLink) adminLink.hidden = user?.role !== 'admin';
   if (!location.hash) {
     location.hash = '#/home';
   }
@@ -715,6 +822,7 @@ async function refreshData() {
   await refreshHistoryAndMeta();
   await loadReviews();
   await loadAccount();
+  await loadAdmin();
 }
 
 function readHash() {
@@ -880,8 +988,43 @@ ui.filterArea.addEventListener('change', renderHistory);
 ui.filterStatus.addEventListener('change', renderHistory);
 ui.filterSort.addEventListener('change', renderHistory);
 ui.filterQuery.addEventListener('input', renderHistory);
+if (ui.upcomingWindow) ui.upcomingWindow.addEventListener('change', loadUpcoming);
 ui.exportHistoryCsvBtn.addEventListener('click', () => downloadHistory('csv'));
 ui.exportHistoryMdBtn.addEventListener('click', () => downloadHistory('md'));
+
+ui.saveProfileBtn.addEventListener('click', async () => {
+  try {
+    await requestJson('/api/account/profile', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        name: ui.profileName.value,
+        timezone: ui.profileTimezone.value
+      })
+    });
+    showNotice(ui.accountNotice, 'Perfil atualizado.');
+  } catch (error) {
+    showNotice(ui.accountNotice, error.message || 'Não foi possível atualizar o perfil.');
+  }
+});
+
+ui.changePasswordBtn.addEventListener('click', async () => {
+  try {
+    await requestJson('/api/account/change-password', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        currentPassword: ui.currentPassword.value,
+        newPassword: ui.newPassword.value
+      })
+    });
+    ui.currentPassword.value = '';
+    ui.newPassword.value = '';
+    showNotice(ui.accountNotice, 'Senha alterada com sucesso.');
+  } catch (error) {
+    showNotice(ui.accountNotice, error.message || 'Não foi possível trocar a senha.');
+  }
+});
 
 ui.exportDataBtn.addEventListener('click', async () => {
   try {
@@ -909,6 +1052,12 @@ ui.historyList.addEventListener('click', (event) => {
 
   if (target.dataset.action === 'toggle-status') {
     toggleStatus(target.dataset.id, target.dataset.status, target);
+  }
+  if (target.dataset.action === 'edit') {
+    editItem(target.dataset.id);
+  }
+  if (target.dataset.action === 'delete') {
+    deleteItem(target.dataset.id);
   }
 });
 
