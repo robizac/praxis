@@ -20,23 +20,30 @@ function sanitizeTags(tags) {
 }
 
 function toIsoFromPtBr(text) {
-  const match = String(text || '').match(/(\d{2})\/(\d{2})\/(\d{4})\s+(\d{2}):(\d{2})/);
+  const match = String(text || '').match(/(\d{2})\/(\d{2})\/(\d{4})[\s,]+(\d{2}):(\d{2})/);
   if (!match) {
     return null;
   }
 
   const [, day, month, year, hour, minute] = match;
-  const localDate = new Date(
-    Number(year),
-    Number(month) - 1,
-    Number(day),
-    Number(hour),
-    Number(minute),
-    0,
-    0
-  );
+  const d = Number(day);
+  const m = Number(month) - 1;
+  const y = Number(year);
+  const h = Number(hour);
+  const min = Number(minute);
 
-  if (Number.isNaN(localDate.getTime())) {
+  // `new Date` normaliza estouros (31/02 → 03/03, 25:00 → 01:00 do dia seguinte)
+  // em vez de rejeitar. Comparamos os componentes de volta para garantir que a
+  // data digitada existe de fato; caso contrário, é inválida.
+  const localDate = new Date(y, m, d, h, min, 0, 0);
+  if (
+    Number.isNaN(localDate.getTime()) ||
+    localDate.getFullYear() !== y ||
+    localDate.getMonth() !== m ||
+    localDate.getDate() !== d ||
+    localDate.getHours() !== h ||
+    localDate.getMinutes() !== min
+  ) {
     return null;
   }
 
