@@ -81,11 +81,30 @@ async function issueEmailVerification(user) {
   return token;
 }
 
-async function register({ name, email: rawEmail, password: rawPassword, timezone, ip, userAgent }) {
+async function register({
+  name,
+  email: rawEmail,
+  password: rawPassword,
+  timezone,
+  acceptedTerms,
+  ip,
+  userAgent
+}) {
   const emailAddr = normalizeEmail(rawEmail);
   assertValidName(name);
   assertValidEmail(emailAddr);
   assertValidPassword(rawPassword);
+  if (
+    acceptedTerms !== true &&
+    String(acceptedTerms).toLowerCase() !== 'true' &&
+    acceptedTerms !== 1 &&
+    acceptedTerms !== '1'
+  ) {
+    throw new BadRequestError(
+      'É necessário aceitar os Termos de Uso e a Política de Privacidade.',
+      'terms_not_accepted'
+    );
+  }
 
   const existing = await usersRepo.findByEmail(emailAddr);
   if (existing) {
@@ -97,7 +116,8 @@ async function register({ name, email: rawEmail, password: rawPassword, timezone
     email: emailAddr,
     passwordHash,
     name: String(name).trim(),
-    timezone
+    timezone,
+    termsAcceptedAt: new Date().toISOString()
   });
 
   const verificationToken = await issueEmailVerification(user);

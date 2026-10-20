@@ -88,7 +88,12 @@ test('export: CSV retorna header e Content-Disposition', { skip }, async () => {
   await withServer(async (base) => {
     const client = await new Client(base).init();
     const email = uniqueEmail();
-    await client.post('/api/auth/register', { name: 'Exp', email, password: 'senha12345' });
+    await client.post('/api/auth/register', {
+      name: 'Exp',
+      email,
+      password: 'senha12345',
+      acceptedTerms: true
+    });
 
     const res = await client.get('/api/history/export?format=csv');
     assert.equal(res.status, 200);
@@ -102,7 +107,12 @@ test('export: Markdown retorna conteúdo', { skip }, async () => {
   await withServer(async (base) => {
     const client = await new Client(base).init();
     const email = uniqueEmail();
-    await client.post('/api/auth/register', { name: 'Exp', email, password: 'senha12345' });
+    await client.post('/api/auth/register', {
+      name: 'Exp',
+      email,
+      password: 'senha12345',
+      acceptedTerms: true
+    });
 
     const res = await client.get('/api/history/export?format=md');
     assert.equal(res.status, 200);
@@ -115,7 +125,12 @@ test('export: formato inválido retorna 400', { skip }, async () => {
   await withServer(async (base) => {
     const client = await new Client(base).init();
     const email = uniqueEmail();
-    await client.post('/api/auth/register', { name: 'Exp', email, password: 'senha12345' });
+    await client.post('/api/auth/register', {
+      name: 'Exp',
+      email,
+      password: 'senha12345',
+      acceptedTerms: true
+    });
 
     const res = await client.get('/api/history/export?format=pdf');
     assert.equal(res.status, 400);

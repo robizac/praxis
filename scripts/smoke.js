@@ -255,7 +255,8 @@ async function runSmoke(options = {}) {
         name: 'Smoke Test',
         email,
         password,
-        timezone: 'UTC'
+        timezone: 'UTC',
+        acceptedTerms: true
       });
       if (res.status !== 201) {
         throw new Error(

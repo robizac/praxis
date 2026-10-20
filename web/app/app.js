@@ -763,7 +763,8 @@ async function doRegister() {
     body: JSON.stringify({
       name: authUi.regName.value,
       email: authUi.regEmail.value,
-      password: authUi.regPassword.value
+      password: authUi.regPassword.value,
+      acceptedTerms: document.getElementById('regConsent')?.checked === true
     })
   });
   authUi.regPassword.value = '';

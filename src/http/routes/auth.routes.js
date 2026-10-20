@@ -29,6 +29,7 @@ router.post('/register', async (req, res, next) => {
       email: req.body?.email,
       password: req.body?.password,
       timezone: req.body?.timezone,
+      acceptedTerms: req.body?.acceptedTerms ?? req.body?.consent ?? req.body?.terms,
       ip: requestIp(req),
       userAgent: req.headers['user-agent']
     });

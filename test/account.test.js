@@ -105,7 +105,8 @@ async function register(client) {
   const res = await client.post('/api/auth/register', {
     name: 'Conta Teste',
     email,
-    password: 'SenhaForte123'
+    password: 'SenhaForte123',
+    acceptedTerms: true
   });
   assert.equal(res.status, 201);
   return res.data.user;
