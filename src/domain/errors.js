@@ -65,14 +65,28 @@ class TooManyRequestsError extends AppError {
 }
 
 class ProviderError extends AppError {
-  constructor(provider, message, hint) {
+  /**
+   * Falha ao falar com o provider de IA.
+   *
+   * Usa 503 (Service Unavailable) e não 502 (Bad Gateway): 502 faz proxies e
+   * CDNs (Cloudflare na frente do PRAXIS) substituírem o corpo da resposta
+   * pela página genérica de erro deles, escondendo a dica acionável do app
+   * ("confirme a chave, o crédito e o modelo"). 503 passa o corpo intacto.
+   *
+   * @param {string} provider  nome do provider (openai, anthropic, ...)
+   * @param {string} message   mensagem exibida ao usuário
+   * @param {string} hint      como resolver
+   * @param {number} [providerStatus] status HTTP devolvido pelo provider
+   */
+  constructor(provider, message, hint, providerStatus) {
     super(message, {
-      status: 502,
+      status: 503,
       code: 'ai_provider_error',
-      details: { provider, hint }
+      details: { provider, hint, providerStatus }
     });
     this.provider = provider;
     this.hint = hint;
+    this.providerStatus = providerStatus;
   }
 }
 

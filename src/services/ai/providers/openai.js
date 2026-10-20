@@ -62,11 +62,31 @@ async function generate({ input, area, apiKey, model, baseUrl }) {
   if (!response.ok) {
     const body = await response.text();
     console.error('[openai] erro HTTP', response.status, body);
-    throw new ProviderError(
-      'openai',
+    // Traduz o status do provider em algo acionável: sem isso o operador
+    // só vê "não conseguiu gerar" e não sabe se é chave, modelo ou cota.
+    const porStatus = {
+      401: [
+        'A chave da OpenAI foi recusada.',
+        'Confirme se MANAGED_OPENAI_API_KEY/OPENAI_API_KEY está correta e não expirou.'
+      ],
+      403: [
+        'A chave da OpenAI não tem permissão para este modelo.',
+        'Verifique o acesso da chave ao modelo e o limite do projeto na OpenAI.'
+      ],
+      404: [
+        `O modelo "${usedModel}" não existe na OpenAI.`,
+        'Ajuste AI_DEFAULT_MODEL para um modelo disponível na sua conta.'
+      ],
+      429: [
+        'A OpenAI recusou a requisição por limite de uso.',
+        'Aguarde o limite do seu nível e verifique o crédito disponível na OpenAI.'
+      ]
+    };
+    const [message, hint] = porStatus[response.status] || [
       'OpenAI não conseguiu gerar a resposta.',
       'Confirme a chave, o crédito disponível e o modelo.'
-    );
+    ];
+    throw new ProviderError('openai', message, hint, response.status);
   }
 
   const data = await response.json();

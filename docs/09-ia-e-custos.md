@@ -91,6 +91,28 @@ segue abaixo de ~15% da receita (RNF-07). **A assinatura cobre folgadamente o cu
   (secret manager do host). Nunca logada, nunca devolvida (só `key_last4`).
 - Fluxo: usuário cola chave → valida com uma chamada de teste barata → salva.
 - Falha da chave do usuário → erro claro + opção de voltar ao gerenciado.
+
+### Contrato de erro do provider
+
+Falha do provider de IA responde **503 `ai_provider_error`** (não 502): 502 faz
+proxies e CDNs substituírem o corpo pela página de erro genérica deles, e o
+usuário perde a dica de como resolver. O corpo traz:
+
+```json
+{
+  "error": {
+    "code": "ai_provider_error",
+    "message": "A chave da OpenAI foi recusada.",
+    "details": { "provider": "openai", "hint": "...", "providerStatus": 401 }
+  },
+  "requestId": "..."
+}
+```
+
+`providerStatus` é o status HTTP devolvido pelo provider (401 chave, 403
+permissão, 404 modelo inexistente, 429 limite) — é o que permite diagnosticar
+uma IA quebrada por configuração sem adivinhar.
+
 - Aviso de segurança na UI: "usada apenas para gerar suas ações; nunca exibida".
 
 ## 9.7 Variáveis de ambiente da IA

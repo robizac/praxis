@@ -9,7 +9,18 @@ const { config } = require('../../config/env');
 const router = express.Router();
 
 router.get('/health', (_req, res) => {
-  res.json({ status: 'ok', uptime: Math.round(process.uptime()) });
+  // `ai` expõe apenas se o provider gerenciado tem chave configurada — nunca
+  // o valor da chave. Sem isso, uma IA quebrada por configuração (chave
+  // ausente/inválida) fica invisível: o app responde 200 e a geração só
+  // falha quando alguém tenta usar.
+  const ai = {
+    provider: config.ai.provider,
+    managedKeyConfigured: Boolean(
+      config.ai.managedKeys?.[config.ai.provider] || config.ai.managedOpenaiKey
+    ),
+    defaultModel: config.ai.defaultModel
+  };
+  res.json({ status: 'ok', uptime: Math.round(process.uptime()), ai });
 });
 
 router.get('/ready', async (_req, res) => {

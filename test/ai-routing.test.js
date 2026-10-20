@@ -175,3 +175,58 @@ test('aiService: falha do BYOK retorna erro claro', { skip }, async () => {
     stub.restore();
   }
 });
+
+test(
+  'provider de IA: falha responde 503 (não 502) com o status do provider',
+  { skip },
+  async () => {
+    // 502 (Bad Gateway) faz o proxy/CDN substituir o corpo pela página de erro
+    // genérica e esconder a dica do app. 503 (Service Unavailable) mantém o
+    // corpo intacto — o usuário vê o que fazer.
+    const openai = require('../src/services/ai/providers/openai');
+    const stub = stubFetch(() => ({ ok: false, status: 401, text: async () => 'invalid api key' }));
+
+    try {
+      await assert.rejects(
+        () => openai.generate({ input: 'teste', area: 'Identidade', apiKey: 'sk-invalida' }),
+        (error) => {
+          assert.equal(error.status, 503, 'deve ser 503, não 502');
+          assert.equal(error.code, 'ai_provider_error');
+          assert.equal(error.details.providerStatus, 401);
+          assert.match(error.message, /chave/i, 'a mensagem deve apontar o problema da chave');
+          assert.ok(error.details.hint, 'deve trazer a dica de como resolver');
+          return true;
+        }
+      );
+    } finally {
+      stub.restore();
+    }
+  }
+);
+
+test('provider de IA: traduz status do OpenAI em mensagem acionável', { skip }, async () => {
+  const openai = require('../src/services/ai/providers/openai');
+
+  const casos = [
+    { status: 401, esperado: /chave/i },
+    { status: 404, esperado: /modelo/i },
+    { status: 429, esperado: /limite/i }
+  ];
+
+  for (const caso of casos) {
+    const stub = stubFetch(() => ({ ok: false, status: caso.status, text: async () => 'erro' }));
+    try {
+      await assert.rejects(
+        () => openai.generate({ input: 'teste', area: 'Identidade', apiKey: 'sk-teste' }),
+        (error) => {
+          assert.equal(error.status, 503);
+          assert.equal(error.details.providerStatus, caso.status);
+          assert.match(error.message, caso.esperado);
+          return true;
+        }
+      );
+    } finally {
+      stub.restore();
+    }
+  }
+});
