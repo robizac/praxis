@@ -3,6 +3,8 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#262626" />
+    <link rel="manifest" href="manifest.json" />
     <title>PRAXIS</title>
     <link rel="stylesheet" href="styles.css" />
   </head>
@@ -94,6 +96,11 @@
           <h1>PRAXIS</h1>
           <p class="subtitle">Transformar conhecimento em ação prática.</p>
 
+          <div class="card">
+            <strong>Resumo</strong>
+            <div id="summaryText" class="meta">Carregando…</div>
+          </div>
+
           <label for="inputLearned">O que você aprendeu?</label>
           <textarea id="inputLearned"></textarea>
 
@@ -122,6 +129,12 @@
           <p class="subtitle">Acompanhe e conclua suas ações.</p>
 
           <div class="controls">
+            <button id="exportHistoryCsvBtn" class="button secondary small" type="button">
+              Exportar CSV
+            </button>
+            <button id="exportHistoryMdBtn" class="button secondary small" type="button">
+              Exportar Markdown
+            </button>
             <select id="filterArea">
               <option value="">Área: Todas</option>
               <option>Espiritualidade</option>
@@ -291,5 +304,12 @@
     </main>
 
     <script src="app.js" defer></script>
+    <script>
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () =>
+          navigator.serviceWorker.register('sw.js').catch(() => {})
+        );
+      }
+    </script>
   </body>
 </html>

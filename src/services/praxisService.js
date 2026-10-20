@@ -37,6 +37,8 @@ function mapRow(row) {
     status: normalizeStatus(row.status),
     created_at: createdAt,
     tags: parseTagsColumn(row.tags),
+    completed_at:
+      row.completed_at instanceof Date ? row.completed_at.toISOString() : row.completed_at,
     acao_pratica: row.acao_pratica,
     prazo_humano: row.prazo_humano,
     prazo: row.prazo_humano,
@@ -145,10 +147,16 @@ async function update(userId, id, changes) {
     nextTags = Array.isArray(changes.tags) ? changes.tags : [];
   }
 
+  let completedAt = null;
+  if (nextStatus === 'feito') {
+    completedAt = current.completed_at || new Date().toISOString();
+  }
+
   const updated = await praxisRepo.updateFields(userId, id, {
     status: nextStatus,
     area: nextArea,
-    tags: nextTags
+    tags: nextTags,
+    completedAt
   });
 
   return mapRow(updated);
@@ -169,6 +177,131 @@ async function upcoming(userId, windowParam) {
   return { window: windowKey, items: rows.map(mapRow) };
 }
 
+function csvEscape(value) {
+  const text = String(value ?? '');
+  if (/[",\n\r]/.test(text)) {
+    return '"' + text.replaceAll('"', '""') + '"';
+  }
+  return text;
+}
+
+async function exportHistory(userId, format = 'csv') {
+  const rows = await praxisRepo.listRecent(userId, 1000);
+  const items = rows.map(mapRow);
+
+  if (format === 'md') {
+    const lines = [];
+    lines.push('# Histórico PRAXIS');
+    lines.push('');
+    lines.push(`Gerado em: ${new Date().toISOString()}`);
+    lines.push('');
+    lines.push('| ID | Criado em | Área | Status | Ação | Prazo |');
+    lines.push('| --- | --- | --- | --- | --- | --- |');
+    for (const item of items) {
+      lines.push(
+        `| ${item.id} | ${item.created_at} | ${String(item.area).replaceAll('|', '\\|')} | ${item.status} | ${String(item.acao).replaceAll('|', '\\|')} | ${String(item.prazo).replaceAll('|', '\\|')} |`
+      );
+    }
+    lines.push('');
+    for (const item of items) {
+      lines.push(`## Ação #${item.id}`);
+      lines.push('');
+      lines.push(`- **Aprendizado:** ${item.texto}`);
+      lines.push(`- **Ação:** ${item.acao}`);
+      lines.push(`- **Prazo:** ${item.prazo}`);
+      lines.push(`- **Regra mínima:** ${item.regra_minima}`);
+      lines.push(`- **Área:** ${item.area}`);
+      lines.push(`- **Status:** ${item.status}`);
+      lines.push(`- **Criado em:** ${item.created_at}`);
+      lines.push('');
+    }
+    return {
+      filename: 'praxis-historico.md',
+      contentType: 'text/markdown; charset=utf-8',
+      body: lines.join('\n')
+    };
+  }
+
+  const header = [
+    'id',
+    'created_at',
+    'area',
+    'status',
+    'texto',
+    'acao',
+    'prazo',
+    'regra_minima',
+    'tags'
+  ];
+  const csvLines = [header.join(',')];
+  for (const item of items) {
+    csvLines.push(
+      [
+        item.id,
+        item.created_at,
+        csvEscape(item.area),
+        item.status,
+        csvEscape(item.texto),
+        csvEscape(item.acao),
+        csvEscape(item.prazo),
+        csvEscape(item.regra_minima),
+        csvEscape(JSON.stringify(item.tags || []))
+      ].join(',')
+    );
+  }
+  return {
+    filename: 'praxis-historico.csv',
+    contentType: 'text/csv; charset=utf-8',
+    body: csvLines.join('\n') + '\n'
+  };
+}
+
+async function summary(userId) {
+  const rows = await praxisRepo.listRecent(userId, 1000);
+  const items = rows.map(mapRow);
+  const now = new Date();
+  const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+
+  const pendentes = items.filter((item) => item.status === 'pendente').length;
+  const feitos = items.filter((item) => item.status === 'feito');
+  const feitosSemana = feitos.filter((item) => {
+    if (!item.completed_at) return false;
+    return new Date(item.completed_at) >= sevenDaysAgo;
+  }).length;
+
+  const dateSet = new Set(
+    feitos
+      .map((item) =>
+        item.completed_at ? new Date(item.completed_at).toISOString().slice(0, 10) : null
+      )
+      .filter(Boolean)
+  );
+
+  let streak = 0;
+  const cursor = new Date(now);
+  const todayStr = cursor.toISOString().slice(0, 10);
+  if (!dateSet.has(todayStr)) {
+    cursor.setDate(cursor.getDate() - 1);
+  }
+  while (true) {
+    const ds = cursor.toISOString().slice(0, 10);
+    if (dateSet.has(ds)) {
+      streak += 1;
+      cursor.setDate(cursor.getDate() - 1);
+    } else {
+      break;
+    }
+  }
+
+  return {
+    pendentes,
+    feitosSemana,
+    streak,
+    total: items.length,
+    feitosTotal: feitos.length
+  };
+}
+
 module.exports = {
   mapRow,
   generate,
@@ -176,5 +309,7 @@ module.exports = {
   getById,
   update,
   remove,
-  upcoming
+  upcoming,
+  exportHistory,
+  summary
 };

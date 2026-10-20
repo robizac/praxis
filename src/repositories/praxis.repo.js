@@ -3,7 +3,7 @@
 const db = require('../db');
 
 const COLUMNS = `id, texto, acao_pratica, prazo_iso, prazo_humano, regra_minima,
-  area, status, created_at, tags`;
+  area, status, created_at, tags, completed_at`;
 
 async function countPending(userId) {
   const row = await db.get(
@@ -51,10 +51,10 @@ async function listUpcoming(userId, fromIso, toIso) {
   );
 }
 
-async function updateFields(userId, id, { status, area, tags }) {
+async function updateFields(userId, id, { status, area, tags, completedAt }) {
   await db.run(
-    'UPDATE praxis_items SET status = ?, area = ?, tags = ? WHERE id = ? AND user_id = ?',
-    [status, area, JSON.stringify(Array.isArray(tags) ? tags : []), id, userId]
+    'UPDATE praxis_items SET status = ?, area = ?, tags = ?, completed_at = ? WHERE id = ? AND user_id = ?',
+    [status, area, JSON.stringify(Array.isArray(tags) ? tags : []), completedAt || null, id, userId]
   );
   return getById(userId, id);
 }

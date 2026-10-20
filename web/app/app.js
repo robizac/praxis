@@ -19,6 +19,7 @@ const ui = {
   inputArea: document.getElementById('inputArea'),
   homeNotice: document.getElementById('homeNotice'),
   resultCards: document.getElementById('resultCards'),
+  summaryText: document.getElementById('summaryText'),
   resAcao: document.getElementById('resAcao'),
   resPrazo: document.getElementById('resPrazo'),
   resRegra: document.getElementById('resRegra'),
@@ -26,6 +27,8 @@ const ui = {
   filterStatus: document.getElementById('filterStatus'),
   filterQuery: document.getElementById('filterQuery'),
   filterSort: document.getElementById('filterSort'),
+  exportHistoryCsvBtn: document.getElementById('exportHistoryCsvBtn'),
+  exportHistoryMdBtn: document.getElementById('exportHistoryMdBtn'),
   historyList: document.getElementById('historyList'),
   saveReviewBtn: document.getElementById('saveReviewBtn'),
   reviewNotice: document.getElementById('reviewNotice'),
@@ -163,6 +166,38 @@ async function requestJson(url, options = {}) {
   return data;
 }
 
+async function downloadHistory(format) {
+  try {
+    const res = await fetch(`/api/history/export?format=${encodeURIComponent(format)}`, {
+      credentials: 'same-origin'
+    });
+    if (!res.ok) {
+      throw new Error('Falha ao exportar.');
+    }
+    const blob = await res.blob();
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = format === 'md' ? 'praxis-historico.md' : 'praxis-historico.csv';
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+  } catch (_error) {
+    alert('Não foi possível exportar o histórico agora.');
+  }
+}
+
+async function loadSummary() {
+  try {
+    const data = await requestJson('/api/summary');
+    const text = `Pendentes: ${data.pendentes} · Feitas esta semana: ${data.feitosSemana} · Streak: ${data.streak} dia(s)`;
+    ui.summaryText.textContent = text;
+  } catch (_error) {
+    ui.summaryText.textContent = 'Não foi possível carregar o resumo.';
+  }
+}
+
 function renderHomeGate() {
   const blocked = state.pendingCount >= 2;
   ui.generateBtn.disabled = blocked;
@@ -235,6 +270,7 @@ async function refreshHistoryAndMeta() {
   state.pendingCount = Number(meta?.pendentes || 0);
   renderHomeGate();
   renderHistory();
+  loadSummary();
 }
 
 async function generateAction() {
@@ -843,6 +879,26 @@ ui.filterArea.addEventListener('change', renderHistory);
 ui.filterStatus.addEventListener('change', renderHistory);
 ui.filterSort.addEventListener('change', renderHistory);
 ui.filterQuery.addEventListener('input', renderHistory);
+ui.exportHistoryCsvBtn.addEventListener('click', () => downloadHistory('csv'));
+ui.exportHistoryMdBtn.addEventListener('click', () => downloadHistory('md'));
+
+ui.exportDataBtn.addEventListener('click', async () => {
+  try {
+    const res = await fetch('/api/account/export', { credentials: 'same-origin' });
+    if (!res.ok) throw new Error('fail');
+    const blob = await res.blob();
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'praxis-dados.json';
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+  } catch (_error) {
+    showNotice(ui.accountNotice, 'Não foi possível exportar os dados agora.');
+  }
+});
 
 ui.historyList.addEventListener('click', (event) => {
   const target = event.target;
