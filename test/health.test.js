@@ -31,6 +31,18 @@ test('health: responde status e uptime', async () => {
   });
 });
 
+test('health: expõe a situação da IA sem vazar a chave', async () => {
+  await withServer(async (base) => {
+    const res = await fetch(`${base}/health`);
+    const data = await res.json();
+    assert.ok(data.ai, 'health deve informar a situação da IA');
+    assert.equal(typeof data.ai.provider, 'string');
+    assert.equal(typeof data.ai.managedKeyConfigured, 'boolean');
+    // Nenhum valor de segredo pode aparecer no payload.
+    assert.doesNotMatch(JSON.stringify(data), /sk-|apiKey|secret/i);
+  });
+});
+
 test('ready: confirma acesso ao banco', async () => {
   await db.initDb();
   await withServer(async (base) => {
