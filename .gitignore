@@ -1,9 +1,57 @@
+# Dependências
 node_modules
+.pnpm-store
+.yarn/cache
+.yarn/install-state.gz
+
+# Ambiente (o .env.example é versionado)
 .env
+.env.*
+!.env.example
+
+# Banco local e artefatos de runtime
 praxis.db
 praxis.db-*
-backups/
-npm-debug.log*
+*.sqlite
+*.sqlite3
+*.db-journal
+weekly_reviews.json
 .data/
-.opencode/node_modules/
+backups/
+uploads/
 logs/
+tmp/
+
+# Build / output
+dist
+build
+out
+.next
+*.tsbuildinfo
+
+# Logs
+*.log
+npm-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Testes e cobertura
+coverage
+.nyc_output
+.vitest
+
+# Cache de ferramentas
+.cache
+.parcel-cache
+.turbo
+
+# Sistema operacional e editores
+.DS_Store
+Thumbs.db
+.idea
+.vscode/*
+!.vscode/extensions.json
+
+# Ferramentas do agente (mantém apenas o que é versionado de propósito)
+.opencode/node_modules
+.opencode/logs

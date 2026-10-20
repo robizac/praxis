@@ -55,3 +55,12 @@ test('toIsoFromPtBr faz round-trip com formatPtBr (vírgula do pt-BR)', () => {
   assert.match(humano, /,/, 'pt-BR usa vírgula entre data e hora');
   assert.equal(toIsoFromPtBr(humano), date.toISOString());
 });
+
+test('formatPtBr não depende do ICU (small-icu cairia para en-US)', () => {
+  // Com `toLocaleString('pt-BR')`, um Node sem dados de locale pt-BR
+  // devolveria "12/25/2026, 20:00": o usuário veria a data no formato
+  // americano e o app não conseguiria reinterpretar o próprio prazo.
+  const date = new Date(2026, 11, 25, 20, 0, 0, 0);
+  assert.equal(formatPtBr(date), '25/12/2026, 20:00');
+  assert.equal(formatPtBr(new Date(2026, 0, 5, 9, 7, 0, 0)), '05/01/2026, 09:07');
+});

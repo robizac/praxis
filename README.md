@@ -17,7 +17,7 @@ Com Postgres local (app + banco): `docker compose up --build`.
 
 ```bash
 cp .env.example .env   # configure as variáveis (ver abaixo)
-npm run dev            # desenvolvimento (nodemon)
+npm run dev            # desenvolvimento (node --watch)
 npm start              # produção
 ```
 
