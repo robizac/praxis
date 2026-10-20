@@ -174,9 +174,12 @@ async function onCheckoutCompleted(session) {
     return;
   }
   await subscriptionsRepo.upsert(userId, {
-    stripeCustomerId: typeof session.customer === 'string' ? session.customer : session.customer?.id || null,
+    stripeCustomerId:
+      typeof session.customer === 'string' ? session.customer : session.customer?.id || null,
     stripeSubscriptionId:
-      typeof session.subscription === 'string' ? session.subscription : session.subscription?.id || null
+      typeof session.subscription === 'string'
+        ? session.subscription
+        : session.subscription?.id || null
   });
 }
 
@@ -187,7 +190,10 @@ async function onSubscriptionUpsert(subscription) {
   const userId = metadataUserId || (await findUserIdByCustomer(customerId));
 
   if (!userId) {
-    logger.warn({ subscriptionId: subscription.id, customerId }, '[billing] assinatura sem usuário');
+    logger.warn(
+      { subscriptionId: subscription.id, customerId },
+      '[billing] assinatura sem usuário'
+    );
     return;
   }
 

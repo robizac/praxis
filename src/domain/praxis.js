@@ -5,7 +5,9 @@ const { normalizeArea } = require('./areas');
 const DONE_STATUSES = ['feito', 'concluido', 'concluído'];
 
 function normalizeStatus(status) {
-  const value = String(status || '').toLowerCase().trim();
+  const value = String(status || '')
+    .toLowerCase()
+    .trim();
   return DONE_STATUSES.includes(value) ? 'feito' : 'pendente';
 }
 
@@ -81,7 +83,8 @@ function buildSafeFallback(texto, area) {
     area: normalizeArea(area),
     acao: `Aplique por 10 minutos: "${texto}".`,
     prazo: formatPtBr(due),
-    regra_minima: 'Se demorar mais de 2 minutos para começar, reduza para 3 minutos e execute agora.'
+    regra_minima:
+      'Se demorar mais de 2 minutos para começar, reduza para 3 minutos e execute agora.'
   };
 }
 

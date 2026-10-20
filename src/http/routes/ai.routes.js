@@ -44,7 +44,9 @@ router.get('/ai/credentials', async (req, res, next) => {
 
 router.put('/ai/credentials', async (req, res, next) => {
   try {
-    const provider = String(req.body?.provider || '').trim().toLowerCase();
+    const provider = String(req.body?.provider || '')
+      .trim()
+      .toLowerCase();
     const apiKey = String(req.body?.apiKey || '').trim();
     const model = String(req.body?.model || '').trim() || null;
     const baseUrl = String(req.body?.baseUrl || '').trim() || null;

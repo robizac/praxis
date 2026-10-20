@@ -14,6 +14,7 @@ Conexão por `DATABASE_URL`; pool via `pg`. Migrações numeradas em
 ## 7.2 Multi-tenancy
 
 Estratégia **por linha** (`user_id` em toda tabela de dados do usuário).
+
 - Toda consulta de repositório recebe `userId` e filtra por ele.
 - Índices compostos iniciam por `user_id`.
 - Nunca aceitar `user_id` do cliente; sempre da sessão autenticada.
@@ -32,154 +33,168 @@ users 1─n audit_log
 ```
 
 ### users
-| Campo | Tipo | Notas |
-|---|---|---|
-| id | uuid PK | `gen_random_uuid()` |
-| email | citext UNIQUE | normalizado minúsculo |
-| password_hash | text NULL | nulo se OAuth-only |
-| name | text | |
-| role | text | `user` \| `admin` (default `user`) |
-| email_verified_at | timestamptz NULL | |
-| timezone | text | default `America/Sao_Paulo` |
-| status | text | `active` \| `disabled` \| `deleted` |
-| reminder_default_enabled | int | 0/1 (Fase 7) |
-| reminder_default_channel | text NULL | `telegram` \| `browser` \| `email` |
-| reminder_default_lead_minutes | int | default 10 |
-| created_at / updated_at | timestamptz | |
+
+| Campo                         | Tipo             | Notas                               |
+| ----------------------------- | ---------------- | ----------------------------------- |
+| id                            | uuid PK          | `gen_random_uuid()`                 |
+| email                         | citext UNIQUE    | normalizado minúsculo               |
+| password_hash                 | text NULL        | nulo se OAuth-only                  |
+| name                          | text             |                                     |
+| role                          | text             | `user` \| `admin` (default `user`)  |
+| email_verified_at             | timestamptz NULL |                                     |
+| timezone                      | text             | default `America/Sao_Paulo`         |
+| status                        | text             | `active` \| `disabled` \| `deleted` |
+| reminder_default_enabled      | int              | 0/1 (Fase 7)                        |
+| reminder_default_channel      | text NULL        | `telegram` \| `browser` \| `email`  |
+| reminder_default_lead_minutes | int              | default 10                          |
+| created_at / updated_at       | timestamptz      |                                     |
 
 ### sessions
-| Campo | Tipo | Notas |
-|---|---|---|
-| id | uuid PK | session id (cookie) |
-| user_id | uuid FK | ON DELETE CASCADE |
-| token_hash | text | hash do token de sessão |
-| user_agent / ip | text | auditoria |
-| expires_at | timestamptz | |
-| revoked_at | timestamptz NULL | logout |
-| created_at | timestamptz | |
+
+| Campo           | Tipo             | Notas                   |
+| --------------- | ---------------- | ----------------------- |
+| id              | uuid PK          | session id (cookie)     |
+| user_id         | uuid FK          | ON DELETE CASCADE       |
+| token_hash      | text             | hash do token de sessão |
+| user_agent / ip | text             | auditoria               |
+| expires_at      | timestamptz      |                         |
+| revoked_at      | timestamptz NULL | logout                  |
+| created_at      | timestamptz      |                         |
 
 ### password_resets / email_verifications
+
 `id, user_id, token_hash, expires_at, used_at, created_at`.
 
 ### praxis_items (evolução da tabela atual)
-| Campo | Tipo | Notas |
-|---|---|---|
-| id | uuid PK | |
-| user_id | uuid FK | index |
-| texto | text | aprendizado de origem |
-| acao_pratica | text | |
-| prazo_iso | timestamptz | |
-| prazo_humano | text | cache de exibição |
-| regra_minima | text | |
-| area | text | uma das `AREAS` |
-| status | text | `pendente` \| `feito` |
-| tags | jsonb | default `[]` |
-| provider | text | provider de IA usado |
-| created_at / updated_at | timestamptz | |
+
+| Campo                   | Tipo        | Notas                 |
+| ----------------------- | ----------- | --------------------- |
+| id                      | uuid PK     |                       |
+| user_id                 | uuid FK     | index                 |
+| texto                   | text        | aprendizado de origem |
+| acao_pratica            | text        |                       |
+| prazo_iso               | timestamptz |                       |
+| prazo_humano            | text        | cache de exibição     |
+| regra_minima            | text        |                       |
+| area                    | text        | uma das `AREAS`       |
+| status                  | text        | `pendente` \| `feito` |
+| tags                    | jsonb       | default `[]`          |
+| provider                | text        | provider de IA usado  |
+| created_at / updated_at | timestamptz |                       |
 
 Índices: `(user_id, status)`, `(user_id, created_at desc)`, `(user_id, prazo_iso)`.
 
 ### reminders
-| Campo | Tipo | Notas |
-|---|---|---|
-| id | uuid PK | |
-| user_id | uuid FK | |
-| praxis_id | uuid FK | ON DELETE CASCADE |
-| remind_at_iso | timestamptz | |
-| channel | text | `email` \| `telegram` \| `browser` |
-| status | text | `pending` \| `sent` \| `failed` |
-| attempts | int | default 0 |
-| sent_at | timestamptz NULL | |
-| last_error | text NULL | |
-| created_at | timestamptz | |
+
+| Campo         | Tipo             | Notas                              |
+| ------------- | ---------------- | ---------------------------------- |
+| id            | uuid PK          |                                    |
+| user_id       | uuid FK          |                                    |
+| praxis_id     | uuid FK          | ON DELETE CASCADE                  |
+| remind_at_iso | timestamptz      |                                    |
+| channel       | text             | `email` \| `telegram` \| `browser` |
+| status        | text             | `pending` \| `sent` \| `failed`    |
+| attempts      | int              | default 0                          |
+| sent_at       | timestamptz NULL |                                    |
+| last_error    | text NULL        |                                    |
+| created_at    | timestamptz      |                                    |
 
 Índice: `(status, remind_at_iso)`.
 
 ### telegram_chats (Fase 7)
-| Campo | Tipo | Notas |
-|---|---|---|
-| id | text PK | UUID gerado na aplicação |
-| user_id | text FK | UNIQUE, ON DELETE CASCADE |
-| chat_id | text | id do chat do Telegram |
-| username | text NULL | `@usuario` no momento do vínculo |
-| linked_at / updated_at | text | ISO-8601 |
+
+| Campo                  | Tipo      | Notas                            |
+| ---------------------- | --------- | -------------------------------- |
+| id                     | text PK   | UUID gerado na aplicação         |
+| user_id                | text FK   | UNIQUE, ON DELETE CASCADE        |
+| chat_id                | text      | id do chat do Telegram           |
+| username               | text NULL | `@usuario` no momento do vínculo |
+| linked_at / updated_at | text      | ISO-8601                         |
 
 Índice: `(user_id)`.
 
 ### telegram_link_codes (Fase 7)
-| Campo | Tipo | Notas |
-|---|---|---|
-| code | text PK | 6 dígitos, uso único |
-| user_id | text FK | ON DELETE CASCADE |
-| expires_at | text | TTL de 15 min |
-| used_at | text NULL | preenchido ao vincular |
-| created_at | text | ISO-8601 |
+
+| Campo      | Tipo      | Notas                  |
+| ---------- | --------- | ---------------------- |
+| code       | text PK   | 6 dígitos, uso único   |
+| user_id    | text FK   | ON DELETE CASCADE      |
+| expires_at | text      | TTL de 15 min          |
+| used_at    | text NULL | preenchido ao vincular |
+| created_at | text      | ISO-8601               |
 
 Índice: `(user_id)`.
 
 ### weekly_reviews (sai do JSON para o banco)
-| Campo | Tipo | Notas |
-|---|---|---|
-| id | uuid PK | |
-| user_id | uuid FK | |
-| respostas | jsonb | `{executei,trouxe_paz,gerou_peso,deve_sair}` |
-| insights | text | opcional |
-| created_at | timestamptz | |
+
+| Campo      | Tipo        | Notas                                        |
+| ---------- | ----------- | -------------------------------------------- |
+| id         | uuid PK     |                                              |
+| user_id    | uuid FK     |                                              |
+| respostas  | jsonb       | `{executei,trouxe_paz,gerou_peso,deve_sair}` |
+| insights   | text        | opcional                                     |
+| created_at | timestamptz |                                              |
 
 ### ai_credentials (BYOK)
-| Campo | Tipo | Notas |
-|---|---|---|
-| id | uuid PK | |
-| user_id | uuid FK | |
-| provider | text | `openai` \| `anthropic` \| `gemini` \| `ollama` |
-| base_url | text NULL | para ollama/self-host |
-| model | text NULL | override de modelo |
-| key_cipher | bytea | AES-256-GCM |
-| key_last4 | text | exibição mascarada |
-| created_at / updated_at | timestamptz | |
+
+| Campo                   | Tipo        | Notas                                           |
+| ----------------------- | ----------- | ----------------------------------------------- |
+| id                      | uuid PK     |                                                 |
+| user_id                 | uuid FK     |                                                 |
+| provider                | text        | `openai` \| `anthropic` \| `gemini` \| `ollama` |
+| base_url                | text NULL   | para ollama/self-host                           |
+| model                   | text NULL   | override de modelo                              |
+| key_cipher              | bytea       | AES-256-GCM                                     |
+| key_last4               | text        | exibição mascarada                              |
+| created_at / updated_at | timestamptz |                                                 |
 
 Unique: `(user_id, provider)`.
 
 ### ai_usage
-| Campo | Tipo | Notas |
-|---|---|---|
-| id | uuid PK | |
-| user_id | uuid FK | |
-| source | text | `managed` \| `byok` |
-| provider | text | |
-| model | text | |
-| input_tokens / output_tokens | int | |
-| cost_usd | numeric(10,6) | estimado |
-| created_at | timestamptz | |
+
+| Campo                        | Tipo          | Notas               |
+| ---------------------------- | ------------- | ------------------- |
+| id                           | uuid PK       |                     |
+| user_id                      | uuid FK       |                     |
+| source                       | text          | `managed` \| `byok` |
+| provider                     | text          |                     |
+| model                        | text          |                     |
+| input_tokens / output_tokens | int           |                     |
+| cost_usd                     | numeric(10,6) | estimado            |
+| created_at                   | timestamptz   |                     |
 
 Índice: `(user_id, created_at)` — base para cotas e relatórios.
 
 ### subscriptions
-| Campo | Tipo | Notas |
-|---|---|---|
-| id | uuid PK | |
-| user_id | uuid FK UNIQUE | uma assinatura por usuário |
-| stripe_customer_id | text UNIQUE NULL | |
-| stripe_subscription_id | text UNIQUE NULL | |
-| price_id | text NULL | Price da Stripe (mapeia para o plano) |
-| plan | text | `free` \| `pro` \| `pro_annual` |
-| status | text | `none` `active` `trialing` `past_due` `canceled` `incomplete` `unpaid` |
-| current_period_end | timestamptz NULL | |
-| cancel_at_period_end | boolean | |
-| trial_end | timestamptz NULL | fim do trial |
-| created_at / updated_at | timestamptz | |
+
+| Campo                   | Tipo             | Notas                                                                  |
+| ----------------------- | ---------------- | ---------------------------------------------------------------------- |
+| id                      | uuid PK          |                                                                        |
+| user_id                 | uuid FK UNIQUE   | uma assinatura por usuário                                             |
+| stripe_customer_id      | text UNIQUE NULL |                                                                        |
+| stripe_subscription_id  | text UNIQUE NULL |                                                                        |
+| price_id                | text NULL        | Price da Stripe (mapeia para o plano)                                  |
+| plan                    | text             | `free` \| `pro` \| `pro_annual`                                        |
+| status                  | text             | `none` `active` `trialing` `past_due` `canceled` `incomplete` `unpaid` |
+| current_period_end      | timestamptz NULL |                                                                        |
+| cancel_at_period_end    | boolean          |                                                                        |
+| trial_end               | timestamptz NULL | fim do trial                                                           |
+| created_at / updated_at | timestamptz      |                                                                        |
 
 > **Implementação (Fase 5)**: `src/db/migrations/{sqlite,postgres}/005_billing.sql`.
 > Acesso ao plano pago (`effectivePlanId`) só com status `active`/`trialing`.
 
 ### stripe_events (idempotência de webhook)
+
 `id text PK (= event.id), type, payload, processed_at, created_at`.
 Inserido antes de processar; `processed_at` marca conclusão (retry seguro).
 
 ### audit_log
+
 `id, user_id NULL, action, entity, entity_id, metadata jsonb, ip, created_at`.
 
 ### schema_migrations
+
 `version text PK, applied_at timestamptz`.
 
 ## 7.4 DDL essencial (Postgres)

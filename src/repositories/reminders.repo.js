@@ -30,7 +30,11 @@ async function listDueByChannel(channel, nowIso, userId = null) {
      WHERE r.channel = ? AND r.sent_at IS NULL AND r.attempts < ${MAX_ATTEMPTS} AND r.remind_at_iso <= ?`;
 
   if (userId) {
-    return db.all(`${base} AND r.user_id = ? ORDER BY r.remind_at_iso ASC`, [channel, nowIso, userId]);
+    return db.all(`${base} AND r.user_id = ? ORDER BY r.remind_at_iso ASC`, [
+      channel,
+      nowIso,
+      userId
+    ]);
   }
   return db.all(`${base} ORDER BY r.remind_at_iso ASC`, [channel, nowIso]);
 }
@@ -38,10 +42,11 @@ async function listDueByChannel(channel, nowIso, userId = null) {
 /** Marca como enviado; com `userId`, só afeta lembrete do próprio usuário. */
 async function markSent(id, nowIso, userId = null) {
   if (userId) {
-    const result = await db.run(
-      'UPDATE reminders SET sent_at = ? WHERE id = ? AND user_id = ?',
-      [nowIso, id, userId]
-    );
+    const result = await db.run('UPDATE reminders SET sent_at = ? WHERE id = ? AND user_id = ?', [
+      nowIso,
+      id,
+      userId
+    ]);
     return result.changes;
   }
   const result = await db.run('UPDATE reminders SET sent_at = ? WHERE id = ?', [nowIso, id]);

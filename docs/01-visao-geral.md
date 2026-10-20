@@ -14,11 +14,11 @@ Depois o usuário acompanha o **histórico** (conclui/reabre ações), recebe
 
 ## Proposta de valor
 
-| Para quem | Dor | PRAXIS resolve |
-|-----------|-----|----------------|
+| Para quem                           | Dor                    | PRAXIS resolve                            |
+| ----------------------------------- | ---------------------- | ----------------------------------------- |
 | Pessoas que consomem muito conteúdo | "Aprendo e não aplico" | Converte aprendizado em 1 ação executável |
-| Pessoas com excesso de tarefas | Paralisia / sobrecarga | Limita a 2 ações pendentes por vez |
-| Quem quer constância | Falta de ritmo | Prazos + lembretes + revisão semanal |
+| Pessoas com excesso de tarefas      | Paralisia / sobrecarga | Limita a 2 ações pendentes por vez        |
+| Quem quer constância                | Falta de ritmo         | Prazos + lembretes + revisão semanal      |
 
 ## Público-alvo
 

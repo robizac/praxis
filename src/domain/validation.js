@@ -8,7 +8,9 @@ const MAX_PASSWORD_LENGTH = 200;
 const MAX_NAME_LENGTH = 120;
 
 function normalizeEmail(email) {
-  return String(email || '').trim().toLowerCase();
+  return String(email || '')
+    .trim()
+    .toLowerCase();
 }
 
 function assertValidEmail(email) {

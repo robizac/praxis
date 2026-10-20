@@ -38,11 +38,11 @@ Worker (mesma imagem, comando diferente):
 
 ## 13.3 Processos
 
-| Processo | Comando | Escala |
-|---|---|---|
-| Web/API | `node src/http/server.js` | 1+ (horizontal) |
-| Worker de lembretes | `node src/jobs/reminders.worker.js` | 1 (singleton) |
-| Migrações | `node scripts/migrate.js` (idempotente) | 1, no boot do web |
+| Processo            | Comando                                 | Escala            |
+| ------------------- | --------------------------------------- | ----------------- |
+| Web/API             | `node src/http/server.js`               | 1+ (horizontal)   |
+| Worker de lembretes | `node src/jobs/reminders.worker.js`     | 1 (singleton)     |
+| Migrações           | `node scripts/migrate.js` (idempotente) | 1, no boot do web |
 
 > Lembretes **não** podem depender de `node-cron` no processo web (quebra com
 > múltiplas instâncias/sleep). Ver F7.
@@ -144,6 +144,7 @@ restauração trimestral. Detalhes em [14](14-checklist-seguranca-lgpd.md#144-ba
 ## 13.7 Observações específicas do Kymus
 
 Como o painel não pôde ser inspecionado daqui, confirmar:
+
 - [ ] Aceita Dockerfile? (Se não, buildpack Node: definir start command.)
 - [ ] Oferece Postgres gerenciado? (Se não, usar provedor externo, ex.: Neon/Supabase.)
 - [ ] Suporta processo worker/segundo serviço? (Se não, cron externo.)

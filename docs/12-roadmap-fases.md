@@ -24,9 +24,11 @@ F0 Descoberta ─▶ F1 Fundação ─▶ F2 Acesso ─▶ F3 Multi-tenant ─�
 ```
 
 ## Fase 0 — Descoberta e aprovação (2–3 dias)
+
 **Objetivo**: fechar decisões antes de codar.
 
 Tarefas:
+
 - [ ] Aprovar docs 03–12 e responder às decisões abertas ([docs/README](README.md)).
 - [ ] Definir preços/limites finais (Free/Pro/Pro Anual).
 - [ ] Confirmar Postgres no Kymus e fluxo de deploy.
@@ -37,9 +39,11 @@ Entregável: decisões registradas + backlog priorizado.
 Aceite: todos os itens de "decisões a aprovar" resolvidos.
 
 ## Fase 1 — Fundação técnica (1–1,5 semana) ✅ concluída
+
 **Objetivo**: base para evoluir sem retrabalho.
 
 Tarefas:
+
 - [x] Reestruturar em `src/` (config, domain, http, services, repositories, integrations, jobs).
 - [x] `config/env.js` com validação (faltando env ⇒ aviso/falha no boot).
 - [x] Migrar `domain.js` → `src/domain/`; manter testes verdes.
@@ -60,9 +64,11 @@ Dependências: F0.
 > 8 testes passando (domínio, parser de IA, repositórios).
 
 ## Fase 2 — Controle de acesso (1,5–2 semanas) ✅ concluída
+
 **Objetivo**: contas e sessões.
 
 Tarefas:
+
 - [x] Migração: `users`, `sessions`, `password_resets`, `email_verifications`, `audit_log`.
 - [x] Cadastro/login/logout/me; Argon2id (fallback scrypt); verificação de e-mail; reset de senha.
 - [x] Sessão em cookie httpOnly + CSRF (double-submit) + rotação no login.
@@ -92,9 +98,11 @@ Dependências: F1.
 > resposta apenas em ambiente não-produção (campo `devVerificationToken`/`devToken`).
 
 ## Fase 3 — Multi-tenancy e migração de dados (1 semana) ✅ concluída
+
 **Objetivo**: cada usuário vê só os próprios dados.
 
 Tarefas:
+
 - [x] Adicionar `user_id` em `praxis_items`, `reminders`; criar `weekly_reviews` no banco.
 - [x] Repositórios passam a exigir `userId`; escopar todas as queries.
 - [x] Migrar `reviews.repo.js` de JSON para banco (removido acoplamento ao store legado).
@@ -119,9 +127,11 @@ Dependências: F2.
 > Testes: `test/isolation.test.js` (itens, revisões e lembretes de A invisíveis para B).
 
 ## Fase 4 — IA: BYOK + cotas + custo (1–1,5 semana) ✅ concluída
+
 **Objetivo**: custo controlado e chave do usuário.
 
 Tarefas:
+
 - [x] `aiService` com roteamento gerenciado vs BYOK.
 - [x] Adaptadores `openai`, `anthropic`, `gemini`, `ollama` (pasta `src/services/ai/providers/`).
 - [x] Tabelas `ai_credentials` (cifra AES-256-GCM) e `ai_usage`.
@@ -153,9 +163,11 @@ Dependências: F3.
 > Testes: `test/crypto.test.js`, `test/usage.test.js`, `test/ai-routing.test.js`.
 
 ## Fase 5 — Stripe e entitlements ✅ (1,5–2 semanas)
+
 **Objetivo**: cobrar e liberar recursos por plano.
 
 Tarefas:
+
 - [x] Criar produtos/preços (`scripts/stripe-setup.js`); catálogo `GET /api/billing/plans`.
 - [x] `subscriptions` + `stripe_events`; `billingService` de sincronização.
 - [x] `POST /api/billing/checkout` e `POST /api/billing/portal`.
@@ -186,9 +198,11 @@ Dependências: F4.
 > **Aberto**: confirmar preços do Pro (docs/09) e preços de teste (`price_...`).
 
 ## Fase 6 — Landing page ✅ (1 semana)
+
 **Objetivo**: aquisição + conversão.
 
 Tarefas:
+
 - [x] `web/landing/index.html` com as 12 seções ([11](11-landing-page.md)).
 - [x] CTAs integrados ao cadastro/checkout.
 - [x] SEO (meta, OG, sitemap, robots, JSON-LD), performance e acessibilidade.
@@ -203,9 +217,11 @@ Dependências: F5 (para preços reais).
 > em `src/http/app.js` serve landing em `/` e SPA em `/app`.
 
 ## Fase 7 — Lembretes confiáveis (1 semana)
+
 **Objetivo**: notificações que não dependem do processo web.
 
 Tarefas:
+
 - [x] Worker `jobs/reminders.worker.js` (comando `npm run worker`).
 - [x] Lembrete por **e-mail** (provider transacional) além de Telegram/browser.
 - [x] Pareamento de Telegram **por usuário** (código), não global por env.
@@ -241,11 +257,12 @@ Dependências: F3.
 > o lembrete em `prazo − leadMinutes` no canal escolhido, sem nunca lançar por
 > cota/prazo (apenas ignora e registra um aviso).
 
-
 ## Fase 8 — Hardening, observabilidade e LGPD (1 semana) ✅
+
 **Objetivo**: pronto para produção.
 
 Tarefas:
+
 - [x] CSP com JS/CSS externos (remover inline do HTML), headers completos.
 - [x] Exportação e exclusão de dados do usuário (LGPD); termos/privacidade.
 - [x] Métricas de negócio + alertas (webhook, worker, 5xx, custo IA).
@@ -273,9 +290,11 @@ Dependências: F5, F6, F7.
 > Checklist completo em [14](14-checklist-seguranca-lgpd.md).
 
 ## Fase 9 — Lançamento no Kymus (2–3 dias)
+
 **Objetivo**: publicar em `dash.kymus.app/hosting`.
 
 Tarefas:
+
 - [ ] Provisionar Postgres; configurar secrets.
 - [ ] Deploy web + worker; migrações no boot.
 - [ ] Configurar webhook Stripe para a URL de produção.
@@ -288,33 +307,34 @@ Dependências: F8.
 
 ## Resumo e sequência
 
-| Fase | Entrega | Est. | Depende |
-|---|---|---|---|
-| F0 | Decisões | 2–3 d | — |
-| F1 | Fundação + DB + CI ✅ | 1–1,5 sem | F0 |
-| F2 | Contas e sessões ✅ | 1,5–2 sem | F1 |
-| F3 | Multi-tenant + migração | 1 sem | F2 |
-| F4 | BYOK + cotas + custo | 1–1,5 sem | F3 |
-| F5 | Stripe + entitlements | 1,5–2 sem | F4 |
-| F6 | Landing page | 1 sem | F5 |
-| F7 | Lembretes confiáveis | 1 sem | F3 |
-| F8 | Hardening + LGPD ✅ | 1 sem | F5,F6,F7 |
-| F9 | Lançamento | 2–3 d | F8 |
+| Fase | Entrega                 | Est.      | Depende  |
+| ---- | ----------------------- | --------- | -------- |
+| F0   | Decisões                | 2–3 d     | —        |
+| F1   | Fundação + DB + CI ✅   | 1–1,5 sem | F0       |
+| F2   | Contas e sessões ✅     | 1,5–2 sem | F1       |
+| F3   | Multi-tenant + migração | 1 sem     | F2       |
+| F4   | BYOK + cotas + custo    | 1–1,5 sem | F3       |
+| F5   | Stripe + entitlements   | 1,5–2 sem | F4       |
+| F6   | Landing page            | 1 sem     | F5       |
+| F7   | Lembretes confiáveis    | 1 sem     | F3       |
+| F8   | Hardening + LGPD ✅     | 1 sem     | F5,F6,F7 |
+| F9   | Lançamento              | 2–3 d     | F8       |
 
 **Total estimado**: ~10–12 semanas de 1 dev (F6 e F7 podem ser paralelas com 2 pessoas).
 
 ## Quick wins (podem ir antes, se quiser valor já)
+
 - PWA (instalável) e lembrete default por e-mail.
 - Dashboard/resumo (pendentes, feitas na semana, streak).
 - Exportar histórico em CSV/Markdown.
 
 ## Riscos e mitigação
 
-| Risco | Prob. | Impacto | Mitigação |
-|---|---|---|---|
-| Preço de API sobe | Média | Médio | BYOK + monitorar custo + trocar modelo |
-| Migração de dados corrompe | Baixa | Alto | Script idempotente + backup + dry-run |
-| Worker não roda no host | Média | Alto | Confirmar suporte a worker/cron no Kymus (F0) |
-| Escopo de auth cresce | Média | Médio | Google OAuth é "Should"; senha primeiro |
-| Webhook mal configurado | Média | Alto | Testes Stripe CLI + idempotência + alertas |
-| Baixa conversão | Média | Alto | Landing + trial + iteração de copy |
+| Risco                      | Prob. | Impacto | Mitigação                                     |
+| -------------------------- | ----- | ------- | --------------------------------------------- |
+| Preço de API sobe          | Média | Médio   | BYOK + monitorar custo + trocar modelo        |
+| Migração de dados corrompe | Baixa | Alto    | Script idempotente + backup + dry-run         |
+| Worker não roda no host    | Média | Alto    | Confirmar suporte a worker/cron no Kymus (F0) |
+| Escopo de auth cresce      | Média | Médio   | Google OAuth é "Should"; senha primeiro       |
+| Webhook mal configurado    | Média | Alto    | Testes Stripe CLI + idempotência + alertas    |
+| Baixa conversão            | Média | Alto    | Landing + trial + iteração de copy            |

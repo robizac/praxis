@@ -41,7 +41,9 @@ async function getByCustomerId(customerId) {
   if (!customerId) {
     return null;
   }
-  return map(await db.get(`SELECT ${COLUMNS} FROM subscriptions WHERE stripe_customer_id = ?`, [customerId]));
+  return map(
+    await db.get(`SELECT ${COLUMNS} FROM subscriptions WHERE stripe_customer_id = ?`, [customerId])
+  );
 }
 
 async function getBySubscriptionId(subscriptionId) {
@@ -49,7 +51,9 @@ async function getBySubscriptionId(subscriptionId) {
     return null;
   }
   return map(
-    await db.get(`SELECT ${COLUMNS} FROM subscriptions WHERE stripe_subscription_id = ?`, [subscriptionId])
+    await db.get(`SELECT ${COLUMNS} FROM subscriptions WHERE stripe_subscription_id = ?`, [
+      subscriptionId
+    ])
   );
 }
 
@@ -58,7 +62,7 @@ async function upsert(userId, data) {
   const existing = await getByUser(userId);
   const now = new Date().toISOString();
   const pick = (key, column, fallback) =>
-    data[key] !== undefined ? data[key] : (existing ? existing[column] : fallback);
+    data[key] !== undefined ? data[key] : existing ? existing[column] : fallback;
 
   const next = {
     stripe_customer_id: pick('stripeCustomerId', 'stripe_customer_id', null),
@@ -68,9 +72,14 @@ async function upsert(userId, data) {
     status: pick('status', 'status', 'none'),
     current_period_end: pick('currentPeriodEnd', 'current_period_end', null),
     trial_end: pick('trialEnd', 'trial_end', null),
-    cancel_at_period_end: data.cancelAtPeriodEnd !== undefined
-      ? (data.cancelAtPeriodEnd ? 1 : 0)
-      : (existing && existing.cancel_at_period_end ? 1 : 0)
+    cancel_at_period_end:
+      data.cancelAtPeriodEnd !== undefined
+        ? data.cancelAtPeriodEnd
+          ? 1
+          : 0
+        : existing && existing.cancel_at_period_end
+          ? 1
+          : 0
   };
 
   const params = [

@@ -46,7 +46,9 @@ async function handleIncomingMessage({ chatId, username, text }) {
   if (!chatId || !text) {
     return null;
   }
-  const match = String(text).trim().match(/^\/(?:start|vincular)\s+(\d{4,8})\b/i);
+  const match = String(text)
+    .trim()
+    .match(/^\/(?:start|vincular)\s+(\d{4,8})\b/i);
   if (!match) {
     return null;
   }
@@ -61,7 +63,10 @@ async function handleIncomingMessage({ chatId, username, text }) {
   }
 
   await linkCodesRepo.markUsed(code);
-  const linked = await telegramChatsRepo.upsert(record.user_id, { chatId, username: username || null });
+  const linked = await telegramChatsRepo.upsert(record.user_id, {
+    chatId,
+    username: username || null
+  });
   return linked;
 }
 

@@ -1,15 +1,15 @@
 # 09 — IA e custos
 
-Atende direto ao requisito: *"a funcionalidade que usa agente de IA deve usar a
-chave de IA do usuário, ou algo cujo custo de uso seja menor que o cobrado na assinatura."*
+Atende direto ao requisito: _"a funcionalidade que usa agente de IA deve usar a
+chave de IA do usuário, ou algo cujo custo de uso seja menor que o cobrado na assinatura."_
 
 ## 9.1 Estratégia recomendada: híbrida (BYOK + gerenciado com cota)
 
-| Modo | Quem paga a IA | Quando usar | Vantagem |
-|---|---|---|---|
-| **Gerenciado** (default) | PRAXIS (chave da plataforma) | todos, até a cota | Zero atrito; funciona no primeiro clique |
-| **BYOK** | Usuário (chave própria) | power users / quem quer modelo específico | Custo zero para o PRAXIS; sem cota |
-| Ollama local (BYOK self-host) | Usuário | quem já roda Ollama | Custo zero, privacidade |
+| Modo                          | Quem paga a IA               | Quando usar                               | Vantagem                                 |
+| ----------------------------- | ---------------------------- | ----------------------------------------- | ---------------------------------------- |
+| **Gerenciado** (default)      | PRAXIS (chave da plataforma) | todos, até a cota                         | Zero atrito; funciona no primeiro clique |
+| **BYOK**                      | Usuário (chave própria)      | power users / quem quer modelo específico | Custo zero para o PRAXIS; sem cota       |
+| Ollama local (BYOK self-host) | Usuário                      | quem já roda Ollama                       | Custo zero, privacidade                  |
 
 Regra: **BYOK ativo ⇒ não consome cota gerenciada.** Sem BYOK ⇒ limite mensal
 do plano. Ao estourar ⇒ oferta de upgrade/BYOK.
@@ -37,12 +37,14 @@ Adicionar provider = novo arquivo, sem tocar no resto.
 ## 9.3 Modelo de custo (viabilidade)
 
 Premissas de uma geração PRAXIS:
+
 - **Entrada**: ~500 tokens (system + regra + aprendizado + schema).
 - **Saída**: ~150 tokens (JSON).
 - Modelo econômico: **US$ 0,15 / 1M input** e **US$ 0,60 / 1M output**
-  (classe `gpt-5-nano` / `gemini-flash` / `gpt-4o-mini`). *Confirmar preço atual.*
+  (classe `gpt-5-nano` / `gemini-flash` / `gpt-4o-mini`). _Confirmar preço atual._
 
 Custo por geração:
+
 ```
 0,0005 * 0,15 + 0,00015 * 0,60 = 0,000075 + 0,00009 = US$ 0,000165
 ≈ R$ 0,0009  (câmbio ~5,4)  → menos de 1 centavo
@@ -50,12 +52,12 @@ Custo por geração:
 
 Custo mensal por assinante (pior caso do plano):
 
-| Plano | Gerações/mês | Custo IA estimado (US$) | Custo (R$) | Preço (R$) | % da receita |
-|---|---|---|---|---|---|
-| Free | 10 | 0,0017 | 0,01 | 0 | — |
-| Pro | 300 | 0,05 | 0,27 | 27 | **~1,0%** |
-| Pro (se 3x a cota) | 900 | 0,15 | 0,81 | 27 | ~3,0% |
-| Pro Anual | 400 | 0,07 | 0,36 | 20 (equivalente/mês) | ~1,8% |
+| Plano              | Gerações/mês | Custo IA estimado (US$) | Custo (R$) | Preço (R$)           | % da receita |
+| ------------------ | ------------ | ----------------------- | ---------- | -------------------- | ------------ |
+| Free               | 10           | 0,0017                  | 0,01       | 0                    | —            |
+| Pro                | 300          | 0,05                    | 0,27       | 27                   | **~1,0%**    |
+| Pro (se 3x a cota) | 900          | 0,15                    | 0,81       | 27                   | ~3,0%        |
+| Pro Anual          | 400          | 0,07                    | 0,36       | 20 (equivalente/mês) | ~1,8%        |
 
 Mesmo com **10x** de margem de erro ou uso de modelo ~10x mais caro, o custo
 segue abaixo de ~15% da receita (RNF-07). **A assinatura cobre folgadamente o custo de IA.**

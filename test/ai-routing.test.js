@@ -32,10 +32,18 @@ function stubFetch(handler) {
   const original = globalThis.fetch;
   const calls = [];
   globalThis.fetch = async (url, options) => {
-    calls.push({ url: String(url), body: options && options.body ? JSON.parse(options.body) : null });
+    calls.push({
+      url: String(url),
+      body: options && options.body ? JSON.parse(options.body) : null
+    });
     return handler(String(url), options);
   };
-  return { calls, restore: () => { globalThis.fetch = original; } };
+  return {
+    calls,
+    restore: () => {
+      globalThis.fetch = original;
+    }
+  };
 }
 
 function ollamaOk() {
@@ -73,7 +81,12 @@ test('aiService: modo gerenciado registra uso e serve do cache', { skip }, async
   const stub = stubFetch(ollamaOk);
 
   try {
-    const first = await aiService.generate({ userId: user.id, planId: 'free', input, area: 'Identidade' });
+    const first = await aiService.generate({
+      userId: user.id,
+      planId: 'free',
+      input,
+      area: 'Identidade'
+    });
     assert.equal(first.source, 'managed');
     assert.equal(first.provider, 'ollama');
     assert.equal(first.cached, false);
@@ -81,7 +94,12 @@ test('aiService: modo gerenciado registra uso e serve do cache', { skip }, async
     assert.equal(stub.calls[0].body.model, config.ai.ollamaModel);
     assert.equal(stub.calls.length, 1);
 
-    const second = await aiService.generate({ userId: user.id, planId: 'free', input, area: 'Identidade' });
+    const second = await aiService.generate({
+      userId: user.id,
+      planId: 'free',
+      input,
+      area: 'Identidade'
+    });
     assert.equal(second.cached, true);
     assert.equal(stub.calls.length, 1, 'cache evita nova chamada ao provider');
 
@@ -98,7 +116,14 @@ test('aiService: BYOK usa a chave do usuário e ignora a cota gerenciada', { ski
 
   // Estoura a cota gerenciada.
   for (let i = 0; i < 12; i += 1) {
-    await aiUsageRepo.insert({ userId: user.id, provider: 'ollama', source: 'managed', model: 'm', usage: null, costUsd: 0 });
+    await aiUsageRepo.insert({
+      userId: user.id,
+      provider: 'ollama',
+      source: 'managed',
+      model: 'm',
+      usage: null,
+      costUsd: 0
+    });
   }
 
   await saveByok(user.id, 'openai', 'sk-openai-bypass-1234');
@@ -137,7 +162,13 @@ test('aiService: falha do BYOK retorna erro claro', { skip }, async () => {
 
   try {
     await assert.rejects(
-      () => aiService.generate({ userId: user.id, planId: 'free', input: `falha ${randomUUID()}`, area: 'Identidade' }),
+      () =>
+        aiService.generate({
+          userId: user.id,
+          planId: 'free',
+          input: `falha ${randomUUID()}`,
+          area: 'Identidade'
+        }),
       (error) => error.code === 'ai_provider_error' && /chave de IA/i.test(error.message)
     );
   } finally {

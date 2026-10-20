@@ -14,7 +14,11 @@ const API_VERSION = '2023-06-01';
  */
 async function generate({ input, area, apiKey, model, baseUrl }) {
   if (!apiKey) {
-    throw new ProviderError('anthropic', 'Nenhuma chave da Anthropic configurada.', 'Informe uma chave BYOK.');
+    throw new ProviderError(
+      'anthropic',
+      'Nenhuma chave da Anthropic configurada.',
+      'Informe uma chave BYOK.'
+    );
   }
 
   const usedModel = model || 'claude-3-5-haiku-latest';
@@ -42,7 +46,11 @@ async function generate({ input, area, apiKey, model, baseUrl }) {
       })
     });
   } catch (_error) {
-    throw new ProviderError('anthropic', 'Não foi possível conectar à Anthropic.', 'Verifique sua conexão e a chave.');
+    throw new ProviderError(
+      'anthropic',
+      'Não foi possível conectar à Anthropic.',
+      'Verifique sua conexão e a chave.'
+    );
   } finally {
     timeout.done();
   }
@@ -60,13 +68,21 @@ async function generate({ input, area, apiKey, model, baseUrl }) {
   const data = await response.json();
   const text = String(data?.content?.map((part) => part?.text || '').join('') || '').trim();
   if (!text) {
-    throw new ProviderError('anthropic', 'Anthropic retornou resposta vazia.', 'Tente novamente ou ajuste o modelo.');
+    throw new ProviderError(
+      'anthropic',
+      'Anthropic retornou resposta vazia.',
+      'Tente novamente ou ajuste o modelo.'
+    );
   }
 
   const inputTokens = Number(data?.usage?.input_tokens || 0);
   const outputTokens = Number(data?.usage?.output_tokens || 0);
   const usage = data?.usage
-    ? { prompt_tokens: inputTokens, completion_tokens: outputTokens, total_tokens: inputTokens + outputTokens }
+    ? {
+        prompt_tokens: inputTokens,
+        completion_tokens: outputTokens,
+        total_tokens: inputTokens + outputTokens
+      }
     : null;
 
   return { text, usage, model: usedModel };

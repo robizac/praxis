@@ -8,13 +8,7 @@ const logger = pino({
   base: undefined,
   timestamp: pino.stdTimeFunctions.isoTime,
   redact: {
-    paths: [
-      'req.headers.authorization',
-      'req.headers.cookie',
-      '*.apiKey',
-      '*.token',
-      '*.password'
-    ],
+    paths: ['req.headers.authorization', 'req.headers.cookie', '*.apiKey', '*.token', '*.password'],
     remove: true
   }
 });

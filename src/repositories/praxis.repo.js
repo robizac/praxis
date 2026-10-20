@@ -60,7 +60,10 @@ async function updateFields(userId, id, { status, area, tags }) {
 }
 
 async function deleteById(userId, id) {
-  const result = await db.run('DELETE FROM praxis_items WHERE id = ? AND user_id = ?', [id, userId]);
+  const result = await db.run('DELETE FROM praxis_items WHERE id = ? AND user_id = ?', [
+    id,
+    userId
+  ]);
   return result.changes;
 }
 

@@ -88,7 +88,8 @@ async function update(userId, id, fields) {
 
 // Ruim: SQL na rota, userId vindo do corpo, erro 500 solto, callbacks.
 router.patch('/items/:id', (req, res) => {
-  db.run('UPDATE items SET status=? WHERE id=' + req.params.id, (err) => { // SQL na rota + concat
+  db.run('UPDATE items SET status=? WHERE id=' + req.params.id, (err) => {
+    // SQL na rota + concat
     if (err) return res.status(500).send('erro'); // sem AppError
   });
 });
@@ -184,20 +185,20 @@ do CLI — hoje 2.0.32). `node_modules` e `logs/` são ignorados pelo git.
 
 ## Documentos-chave
 
-| Tema | Documento |
-|---|---|
-| Visão geral | [docs/01-visao-geral.md](docs/01-visao-geral.md) |
+| Tema                          | Documento                                                                      |
+| ----------------------------- | ------------------------------------------------------------------------------ |
+| Visão geral                   | [docs/01-visao-geral.md](docs/01-visao-geral.md)                               |
 | Mapeamento de funcionalidades | [docs/02-mapeamento-funcionalidades.md](docs/02-mapeamento-funcionalidades.md) |
-| Arquitetura | [docs/03-arquitetura.md](docs/03-arquitetura.md) |
-| Requisitos | [docs/05-requisitos.md](docs/05-requisitos.md) |
-| Banco de dados | [docs/07-banco-de-dados.md](docs/07-banco-de-dados.md) |
-| Controle de acesso | [docs/08-controle-de-acesso.md](docs/08-controle-de-acesso.md) |
-| IA e custos | [docs/09-ia-e-custos.md](docs/09-ia-e-custos.md) |
-| Stripe | [docs/10-pagamentos-stripe.md](docs/10-pagamentos-stripe.md) |
-| Landing | [docs/11-landing-page.md](docs/11-landing-page.md) |
-| Roadmap | [docs/12-roadmap-fases.md](docs/12-roadmap-fases.md) |
-| Deploy (Kymus) | [docs/13-deploy-kymus.md](docs/13-deploy-kymus.md) |
-| Segurança/LGPD | [docs/14-checklist-seguranca-lgpd.md](docs/14-checklist-seguranca-lgpd.md) |
+| Arquitetura                   | [docs/03-arquitetura.md](docs/03-arquitetura.md)                               |
+| Requisitos                    | [docs/05-requisitos.md](docs/05-requisitos.md)                                 |
+| Banco de dados                | [docs/07-banco-de-dados.md](docs/07-banco-de-dados.md)                         |
+| Controle de acesso            | [docs/08-controle-de-acesso.md](docs/08-controle-de-acesso.md)                 |
+| IA e custos                   | [docs/09-ia-e-custos.md](docs/09-ia-e-custos.md)                               |
+| Stripe                        | [docs/10-pagamentos-stripe.md](docs/10-pagamentos-stripe.md)                   |
+| Landing                       | [docs/11-landing-page.md](docs/11-landing-page.md)                             |
+| Roadmap                       | [docs/12-roadmap-fases.md](docs/12-roadmap-fases.md)                           |
+| Deploy (Kymus)                | [docs/13-deploy-kymus.md](docs/13-deploy-kymus.md)                             |
+| Segurança/LGPD                | [docs/14-checklist-seguranca-lgpd.md](docs/14-checklist-seguranca-lgpd.md)     |
 
 ## Não fazer
 

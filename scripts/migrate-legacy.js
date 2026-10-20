@@ -36,7 +36,9 @@ async function main() {
   const ownerId = owner.id;
 
   console.log(`Dono da migração: ${owner.email} (${ownerId}) ${dryRun ? '[dry-run]' : ''}`);
-  console.log(`Órfãos: praxis_items=${items ? items.total : 0}, reminders=${reminders ? reminders.total : 0}`);
+  console.log(
+    `Órfãos: praxis_items=${items ? items.total : 0}, reminders=${reminders ? reminders.total : 0}`
+  );
 
   if (!dryRun) {
     await db.run('UPDATE praxis_items SET user_id = ? WHERE user_id IS NULL', [ownerId]);
@@ -58,14 +60,22 @@ async function main() {
     try {
       parsed = JSON.parse(content);
     } catch (error) {
-      console.warn('[migrate-legacy] weekly_reviews.json inválido, pulando importação.', error.message);
+      console.warn(
+        '[migrate-legacy] weekly_reviews.json inválido, pulando importação.',
+        error.message
+      );
       parsed = [];
     }
 
     if (Array.isArray(parsed)) {
       for (const item of parsed) {
         const respostas = item?.respostas || {};
-        if (!respostas.executei || !respostas.trouxe_paz || !respostas.gerou_peso || !respostas.deve_sair) {
+        if (
+          !respostas.executei ||
+          !respostas.trouxe_paz ||
+          !respostas.gerou_peso ||
+          !respostas.deve_sair
+        ) {
           continue;
         }
         if (!dryRun) {

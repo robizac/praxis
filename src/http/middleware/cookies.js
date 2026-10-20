@@ -2,7 +2,12 @@
 
 const crypto = require('crypto');
 const { config } = require('../../config/env');
-const { SESSION_COOKIE, CSRF_COOKIE, CSRF_HEADER, SESSION_TTL_DAYS } = require('../../config/constants');
+const {
+  SESSION_COOKIE,
+  CSRF_COOKIE,
+  CSRF_HEADER,
+  SESSION_TTL_DAYS
+} = require('../../config/constants');
 
 const SAFE_METHODS = new Set(['GET', 'HEAD', 'OPTIONS']);
 

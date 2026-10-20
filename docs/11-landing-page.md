@@ -8,15 +8,15 @@
 
 ## 11.2 Rotas e estrutura
 
-| Rota | Página | Público |
-|---|---|---|
-| `/` | Landing | visitante |
-| `/precos` | Planos (pode ser âncora da landing) | visitante |
-| `/cadastro` | Criar conta | visitante |
-| `/entrar` | Login | visitante |
-| `/app` | Aplicação (área logada) | autenticado |
-| `/app/conta` | Conta/plano/BYOK | autenticado |
-| `/admin` | Administração | admin |
+| Rota         | Página                              | Público     |
+| ------------ | ----------------------------------- | ----------- |
+| `/`          | Landing                             | visitante   |
+| `/precos`    | Planos (pode ser âncora da landing) | visitante   |
+| `/cadastro`  | Criar conta                         | visitante   |
+| `/entrar`    | Login                               | visitante   |
+| `/app`       | Aplicação (área logada)             | autenticado |
+| `/app/conta` | Conta/plano/BYOK                    | autenticado |
+| `/admin`     | Administração                       | admin       |
 
 Recomendação: **landing estática em `/`**, app em `/app`, mesmo host/domínio
 (fácil SEO + cookies de sessão compartilhados).
@@ -42,27 +42,32 @@ Recomendação: **landing estática em `/`**, app em `/app`, mesmo host/domínio
 ## 11.4 Copy (rascunho)
 
 **Hero**
+
 - H1: **Transforme o que você aprende em ação prática.**
-- Sub: Escreva um aprendizado e receba *uma* ação simples, com prazo e uma regra mínima. Sem teoria, sem sobrecarga.
+- Sub: Escreva um aprendizado e receba _uma_ ação simples, com prazo e uma regra mínima. Sem teoria, sem sobrecarga.
 - CTA: **Começar grátis** (secundário: Ver planos)
 
 **Problema**
+
 - "Você consome muito conteúdo e aplica pouco."
 - "Listas de tarefas infinitas travam em vez de destravar."
 - "Falta ritmo para sustentar o que importa."
 
 **Como funciona**
+
 1. **Registre** o que aprendeu.
 2. **Escolha** a Área da Vida.
 3. **Execute** a ação mínima — o PRAXIS cuida do prazo e do lembrete.
 
 **Diferenciais**
+
 - 🎯 Foco forçado: no máximo 2 ações pendentes.
 - ⏰ Prazos e lembretes que realmente chegam.
 - 🔁 Revisão semanal para fechar ciclos.
 - 🔑 Use sua própria chave de IA (OpenAI, Anthropic, Gemini ou Ollama).
 
 **Prova de preço**
+
 - Free: comece de graça.
 - Pro: R$ 27/mês — 300 gerações de IA/mês, BYOK ilimitado, lembretes ampliados.
 

@@ -21,6 +21,7 @@ Follow this checklist exactly:
 6. Show the resulting commit (`git show --stat HEAD`) and the rebase output.
 
 Rules:
+
 - Never push to `main`.
 - Never create a pull request here.
 - If the working tree is clean, say so and do nothing.

@@ -1,4 +1,4 @@
-import { Plugin } from "@opencode/plugin";
+import { Plugin } from '@opencode/plugin';
 
 /**
  * Plugin de TRANSFORM (não é hook!).
@@ -14,14 +14,14 @@ import { Plugin } from "@opencode/plugin";
  */
 
 export default Plugin.define({
-  id: "praxis.tool-hints",
+  id: 'praxis.tool-hints',
   setup: async (ctx) => {
     await ctx.tool.transform((tools) => {
-      tools.update("praxis_check_migrations", (tool) => {
+      tools.update('praxis_check_migrations', (tool) => {
         tool.description +=
-          "\n\nEste check valida APENAS o dialeto SQLite. O Postgres não é exercitado " +
-          "aqui — se você mudou o SQL de um dialeto, confira o outro manualmente.";
+          '\n\nEste check valida APENAS o dialeto SQLite. O Postgres não é exercitado ' +
+          'aqui — se você mudou o SQL de um dialeto, confira o outro manualmente.';
       });
     });
-  },
+  }
 });

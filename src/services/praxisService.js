@@ -135,7 +135,9 @@ async function update(userId, id, changes) {
     throw new NotFoundError('Item não encontrado.');
   }
 
-  const nextStatus = changes.status ? normalizeStatus(changes.status) : normalizeStatus(current.status);
+  const nextStatus = changes.status
+    ? normalizeStatus(changes.status)
+    : normalizeStatus(current.status);
   const nextArea = changes.area ? normalizeArea(changes.area) : normalizeArea(current.area);
 
   let nextTags = parseTagsColumn(current.tags);
