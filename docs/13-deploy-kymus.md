@@ -110,7 +110,11 @@ BACKUP_RETENTION=7
 9. **Monitor**: checar `/health` e `/ready`; raspar `/metrics` com `METRICS_TOKEN`.
 10. **Alertas**: configurar `ALERT_EMAIL` e testar um alerta real.
 11. **Backup**: agendar `npm run backup` (diário) e rodar `npm run backup:test-restore`.
-12. **Smoke tests**: landing → cadastro → geração → assinatura → lembrete.
+12. **Smoke tests**: rodar `npm run smoke -- --base-url https://<dominio>` (funil
+    landing → cadastro → geração → assinatura; ver `scripts/smoke.js`). Para
+    validar também Stripe e métricas: adicionar `--checkout --metrics`
+    (requer `SMOKE_METRICS_TOKEN`). Em produção, exigir Postgres com
+    `--expect-db postgres`.
 
 ### Backup e restauração
 
@@ -136,6 +140,7 @@ restauração trimestral. Detalhes em [14](14-checklist-seguranca-lgpd.md#144-ba
 - [ ] `/health` e `/ready` verdes e monitorados.
 - [ ] `/metrics` raspado com `METRICS_TOKEN`; alertas de 5xx/webhook/worker/IA ativos.
 - [ ] Backup do Postgres agendado e teste de restauração validado.
+- [ ] Smoke tests do funil verdes (`npm run smoke -- --base-url https://<dominio>`).
 - [ ] Custo de IA com alerta (`AI_DAILY_BUDGET_USD` + `ALERT_AI_COST_RATIO`).
 - [ ] Termos/privacidade/contato publicados; exportação e exclusão de conta funcionam.
 - [ ] Checklist de segurança e LGPD ([14](14-checklist-seguranca-lgpd.md)) completo.

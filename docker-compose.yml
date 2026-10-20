@@ -35,5 +35,19 @@ services:
         condition: service_healthy
     command: sh -c "node scripts/migrate.js && node src/http/server.js"
 
+  worker:
+    build: .
+    profiles: ['worker']
+    environment:
+      NODE_ENV: development
+      DATABASE_URL: postgres://praxis:praxis@db:5432/praxis
+      SESSION_SECRET: dev-only-secret-dev-only-secret-1234
+      AI_PROVIDER: ${AI_PROVIDER:-ollama}
+      OLLAMA_BASE_URL: ${OLLAMA_BASE_URL:-http://host.docker.internal:11434}
+    depends_on:
+      db:
+        condition: service_healthy
+    command: sh -c "node scripts/migrate.js && node src/jobs/reminders.worker.js"
+
 volumes:
   praxis_pgdata:
