@@ -43,6 +43,17 @@
     { "action": "shell", "resource": "git reset *", "effect": "ask" },
     { "action": "shell", "resource": "git checkout *", "effect": "ask" },
 
+    // Skills: as de leitura/validação carregam direto. A que mexe em schema
+    // (nova-migracao) pede confirmação, porque mudar migração é sensível.
+    // (Ordem importa: a regra específica vem por último e vence.)
+    { "action": "skill", "resource": "*", "effect": "allow" },
+    { "action": "skill", "resource": "nova-migracao", "effect": "ask" },
+
+    // MCP: tools individuais usam a ação `<mcp-name>_<tool-name>`. Aqui
+    // negamos só a busca de ID do Context7 (podemos consultar docs direto
+    // pelo nome) — o resto do Context7 continua liberado.
+    { "action": "context7_resolve-library-id", "resource": "*", "effect": "deny" },
+
     // Rede/webservice: pedir antes (o projeto não depende de rede no dev).
     { "action": "web*", "resource": "*", "effect": "ask" },
 
@@ -50,6 +61,51 @@
     { "action": "read", "resource": "*.env", "effect": "deny" },
     { "action": "read", "resource": ".env", "effect": "deny" },
     { "action": "read", "resource": ".env.*", "effect": "deny" },
+
+    // Segredos que NÃO estão em .env: o PRAXIS guarda segredos gerados em
+    // runtime aqui (SESSION_SECRET, AI_KEY_ENCRYPTION_SECRET). Ver `.data/` no
+    // .gitignore. Negar leitura de todo o diretório, não só do arquivo.
+    { "action": "read", "resource": ".data/**", "effect": "deny" },
+    { "action": "read", "resource": "*.secrets.json", "effect": "deny" },
+
+    // O .env.example é só o template, sem valores reais: pode ler.
     { "action": "read", "resource": ".env.example", "effect": "allow" }
-  ]
+  ],
+
+  // O watcher observa o filesystem para recarregar plugins/skills. Ignoramos
+  // artefatos reescritos com frequência (banco de dev, parciais do SQLite e
+  // logs), que só gerariam eventos ruidosos. Isto NÃO impede buscar/ler: é
+  // apenas para o watcher não reagir a arquivos que mudam o tempo todo.
+  "watcher": {
+    "ignore": ["praxis.db", "praxis.db-*", "*.log"]
+  },
+
+  // Compactação automática perto do limite da janela. `keep` preserva ~10k
+  // tokens recentes além do resumo; `buffer` é a margem de segurança antes do
+  // limite do modelo (valores explicitados de propósito para o time).
+  "compaction": {
+    "auto": true,
+    "keep": { "tokens": 10000 },
+    "buffer": 20000
+  },
+
+  // MCP servers. Mantenha poucos: cada server paga contexto descrevendo suas
+  // tools, mesmo sem uso. Context7 traz docs atuais das libs que usamos.
+  "mcp": {
+    "servers": {
+      "context7": {
+        "type": "remote",
+        "url": "https://mcp.context7.com/mcp"
+      },
+
+      // Exemplo de server DESABILITADO: a config fica salva, mas o OpenCode
+      // não conecta nem descreve as tools (sem custo de contexto). Útil para
+      // manter a integração pronta sem poluir o catálogo do agente.
+      "notion": {
+        "type": "remote",
+        "url": "https://mcp.notion.com/mcp",
+        "disabled": true
+      }
+    }
+  }
 }

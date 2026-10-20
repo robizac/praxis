@@ -1,0 +1,8 @@
+# Regras para buscas de conteúdo (ripgrep), independentes do Git.
+# `!` re-inclui algo que o .gitignore exclui; um padrão normal exclui da busca.
+#
+# O ripgrep já respeita o .gitignore (node_modules, .env, praxis.db etc.).
+# Aqui excluímos apenas ruído que o Git AINDA rastreia de propósito.
+#
+# Lockfile enorme: polui buscas e não ajuda o raciocínio (é gerado).
+package-lock.json

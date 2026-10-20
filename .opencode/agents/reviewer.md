@@ -1,13 +1,44 @@
 ---
-description: Revisa mudanças do PRAXIS buscando bugs, regressões e violações das regras de ouro do projeto. Read-only: não edita arquivos.
+description: Revisa mudanças do PRAXIS buscando bugs, regressões e violações das regras de ouro do projeto. Não edita arquivos.
 mode: subagent
+# Limita o ciclo agêntico: no último passo o OpenCode desliga as tools e pede um
+# resumo. Evita o loop ruim que já observamos (revisor tentando git diff sem
+# permissão). Um novo prompt do usuário reseta o limite.
+steps: 8
 permissions:
+  # Regra ampla PRIMEIRO; exceções DEPOIS (a ÚLTIMA que casa vence).
   - action: edit
     resource: "*"
     effect: deny
+
+  # Shell: negado por padrão, mas liberamos leitura do git — um revisor precisa
+  # disso para enxergar o diff. Nada que escreva ou rode o projeto.
   - action: shell
     resource: "*"
     effect: deny
+  - action: shell
+    resource: "git diff *"
+    effect: allow
+  - action: shell
+    resource: "git log *"
+    effect: allow
+  - action: shell
+    resource: "git show *"
+    effect: allow
+  - action: shell
+    resource: "git status *"
+    effect: allow
+  - action: shell
+    resource: "git ls-files *"
+    effect: allow
+  - action: shell
+    resource: "git check-ignore *"
+    effect: allow
+
+  # Leitura ampla, DEPOIS as exceções de segredo (senão o allow amplo vence).
+  - action: read
+    resource: "*"
+    effect: allow
   - action: read
     resource: "*.env"
     effect: deny
@@ -17,9 +48,21 @@ permissions:
   - action: read
     resource: ".env.*"
     effect: deny
+
+  # Segredos que NÃO estão em .env: replicados aqui porque o `read "*" allow`
+  # acima pode sobrepor as regras de leitura do projeto (opencode.jsonc). Sem
+  # isto, o revisor conseguiria ler .data/.praxis-secrets.json.
   - action: read
+    resource: ".data/**"
+    effect: deny
+  - action: read
+    resource: "*.secrets.json"
+    effect: deny
+
+  # Nunca chama a custom tool de migração (não faz parte de revisar).
+  - action: praxis_check_migrations
     resource: "*"
-    effect: allow
+    effect: deny
 ---
 
 Você é o revisor de código do PRAXIS. Seu trabalho é encontrar problemas antes
