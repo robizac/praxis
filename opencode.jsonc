@@ -30,10 +30,21 @@
     { "action": "shell", "resource": "npm run migrate *", "effect": "allow" },
     { "action": "shell", "resource": "node --test *", "effect": "allow" },
 
+    // Custom tool do projeto (ver .opencode/plugins/). Ela roda migrações num
+    // banco temporário isolado, sem tocar no praxis.db de dev.
+    //
+    // A ação de permissão de uma custom tool é o NOME da tool, não "shell".
+    // E liberar uma custom tool libera o que ela executa internamente: o
+    // 'ask' do shell NÃO intercepta o que roda dentro da tool.
+    { "action": "praxis_check_migrations", "resource": "*", "effect": "allow" },
+
     // Riscos: sempre perguntar. Push/deploy ficam fora do "allow" de propósito.
     { "action": "shell", "resource": "git push *", "effect": "ask" },
     { "action": "shell", "resource": "git reset *", "effect": "ask" },
     { "action": "shell", "resource": "git checkout *", "effect": "ask" },
+
+    // Rede/webservice: pedir antes (o projeto não depende de rede no dev).
+    { "action": "web*", "resource": "*", "effect": "ask" },
 
     // Segredos: o agente nunca lê .env (nem variantes), só o .env.example.
     { "action": "read", "resource": "*.env", "effect": "deny" },
