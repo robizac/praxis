@@ -1,0 +1,44 @@
+// Configuração do OpenCode para o projeto PRAXIS.
+// Este arquivo é versionado de propósito: define padrões para todo o time.
+// Preferências pessoais (tema, keybinds, diffs) ficam em ~/.config/opencode/cli.json.
+//
+// As regras de "permissions" abaixo transformam parte do "Não fazer" do
+// AGENTS.md em enforcement executável. Regras são avaliadas em ordem e a
+// ÚLTIMA que casar vence.
+{
+  "$schema": "https://opencode.ai/config.json",
+
+  // Modelo padrão do projeto (gratuito). Troque pontualmente com /models ou
+  // ajuste o esforço de raciocínio com Ctrl+T / /thinking.
+  "model": "opencode/deepseek-v4.1-flash-free",
+
+  "permissions": [
+    // Base segura: pede confirmação antes de qualquer comando de shell.
+    { "action": "shell", "resource": "*", "effect": "ask" },
+
+    // Inspeção somente-leitura: não precisa interromper o fluxo.
+    { "action": "shell", "resource": "git status *", "effect": "allow" },
+    { "action": "shell", "resource": "git diff *", "effect": "allow" },
+    { "action": "shell", "resource": "git log *", "effect": "allow" },
+    { "action": "shell", "resource": "git show *", "effect": "allow" },
+    { "action": "shell", "resource": "git branch *", "effect": "allow" },
+    { "action": "shell", "resource": "ls *", "effect": "allow" },
+    { "action": "shell", "resource": "cat *", "effect": "allow" },
+
+    // Verificação: o agente precisa poder validar o próprio trabalho.
+    { "action": "shell", "resource": "npm test *", "effect": "allow" },
+    { "action": "shell", "resource": "npm run migrate *", "effect": "allow" },
+    { "action": "shell", "resource": "node --test *", "effect": "allow" },
+
+    // Riscos: sempre perguntar. Push/deploy ficam fora do "allow" de propósito.
+    { "action": "shell", "resource": "git push *", "effect": "ask" },
+    { "action": "shell", "resource": "git reset *", "effect": "ask" },
+    { "action": "shell", "resource": "git checkout *", "effect": "ask" },
+
+    // Segredos: o agente nunca lê .env (nem variantes), só o .env.example.
+    { "action": "read", "resource": "*.env", "effect": "deny" },
+    { "action": "read", "resource": ".env", "effect": "deny" },
+    { "action": "read", "resource": ".env.*", "effect": "deny" },
+    { "action": "read", "resource": ".env.example", "effect": "allow" }
+  ]
+}
