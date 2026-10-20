@@ -6,7 +6,7 @@ Detalhes em [`docs/`](docs/README.md).
 
 ## Estado atual
 
-**Fases 1 a 7 concluídas** — o código vive em `src/`
+**Fases 1 a 8 concluídas** — o código vive em `src/`
 (camadas: `http → services → repositories/domain`). Banco: SQLite em dev, Postgres
 quando `DATABASE_URL` existe. Migrações versionadas, logger estruturado, erros
 tipados, health/ready, CI e Docker.
@@ -29,6 +29,12 @@ tipados, health/ready, CI e Docker.
   **por usuário** via código de pareamento (`telegram_chats` +
   `telegram_link_codes`, webhook `/webhooks/telegram`); lembrete default ao criar
   ação, configurável em `GET/PUT /api/settings` (`reminderDefault`).
+- Hardening/LGPD (Fase 8): CSP sem `unsafe-inline` (HTML/CSS/JS externos,
+  `Permissions-Policy`), exportação (`GET /api/account/export`) e exclusão
+  (`DELETE /api/account`) de dados, `/metrics` Prometheus (opcional
+  `METRICS_TOKEN`), alertas por log/e-mail (`ALERT_EMAIL`) para 5xx, webhook,
+  worker e custo de IA, e scripts de backup/restauração (`npm run backup`,
+  `npm run backup:test-restore`). Checklist em `docs/14`.
 - Arquivos legados na raiz (`server.js`) viraram shims de compatibilidade.
 
 ## Arquitetura
@@ -41,10 +47,10 @@ src/
   config/        env validada, constantes
   domain/        regras puras (areas, limits, plans, praxis, reminders, errors)
   http/          app, server, middleware, routes
-  services/      casos de uso (praxis/history, review, reminder, usage, billing, account, auth, settings, telegram, audit, ai/)
+  services/      casos de uso (praxis/history, review, reminder, usage, billing, account, auth, settings, telegram, audit, alert, ai/)
   repositories/  SQL (sempre escopado por user_id)
   integrations/  stripe, telegram, crypto
-  jobs/          worker de lembretes
+  jobs/          worker de lembretes + alertas operacionais
   db/            pool + migrations
 web/
   landing/       página pública
@@ -108,10 +114,13 @@ npm test               # node --test (suíte completa)
 npm run lint           # oxlint (análise estática)
 npm run format         # prettier --write (formatação)
 npm run check          # lint + format:check + test
+npm run test:coverage  # testes com cobertura (thresholds embutidos)
 npm run migrate        # aplica migrações (idempotente)
 npm run migrate:legacy # associa dados legados (user_id NULL) a um dono
 npm run stripe:setup   # cria produtos/preços de teste na Stripe e imprime os IDs
 npm run worker         # worker de lembretes (telegram/e-mail), fora do processo web
+npm run backup         # backup do banco (pg_dump ou VACUUM INTO) com rotação
+npm run backup:test-restore -- --file <backup>  # valida a restauração
 ```
 
 > Em produção, **não** rode o cron de lembretes dentro do processo web: use
@@ -188,6 +197,7 @@ do CLI — hoje 2.0.32). `node_modules` e `logs/` são ignorados pelo git.
 | Landing | [docs/11-landing-page.md](docs/11-landing-page.md) |
 | Roadmap | [docs/12-roadmap-fases.md](docs/12-roadmap-fases.md) |
 | Deploy (Kymus) | [docs/13-deploy-kymus.md](docs/13-deploy-kymus.md) |
+| Segurança/LGPD | [docs/14-checklist-seguranca-lgpd.md](docs/14-checklist-seguranca-lgpd.md) |
 
 ## Não fazer
 

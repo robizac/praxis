@@ -1,15 +1,117 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="pt-BR">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Privacidade — PRAXIS</title>
-  <style>body{font-family:system-ui, sans-serif;max-width:800px;margin:0 auto;padding:2rem;line-height:1.6;}</style>
-</head>
-<body>
-  <h1>Política de Privacidade</h1>
-  <p>Última atualização: outubro de 2026</p>
-  <p>Coletamos apenas os dados necessários para funcionar: e-mail, nome, dados da conta e uso do produto. Chaves BYOK são cifradas (AES-256-GCM). Não vendemos dados. Consulte o serviço de pagamento (Stripe) para suas próprias práticas.</p>
-  <p><a href="/">Voltar</a></p>
-</body>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Privacidade — PRAXIS</title>
+    <meta
+      name="description"
+      content="Política de Privacidade do PRAXIS: dados coletados, base legal, retenção e direitos do titular (LGPD)."
+    />
+    <link rel="stylesheet" href="legal.css" />
+  </head>
+  <body>
+    <h1>Política de Privacidade</h1>
+    <p class="updated">Última atualização: outubro de 2026</p>
+
+    <p>
+      Esta política explica quais dados o PRAXIS trata, com qual finalidade e como você pode exercer
+      os direitos previstos na Lei Geral de Proteção de Dados (LGPD — Lei nº 13.709/2018).
+    </p>
+
+    <h2>1. Dados que coletamos</h2>
+    <ul>
+      <li><strong>Conta:</strong> nome, e-mail e senha (armazenada apenas como hash Argon2id).</li>
+      <li>
+        <strong>Uso do produto:</strong> textos que você registra, ações geradas, prazos, revisões
+        semanais e lembretes.
+      </li>
+      <li><strong>Integrações:</strong> vínculo de chat do Telegram e preferências de lembrete.</li>
+      <li>
+        <strong>Cobrança:</strong> status da assinatura e identificadores do cliente na Stripe.
+        Dados de cartão são tratados diretamente pela Stripe; o PRAXIS não os armazena.
+      </li>
+      <li>
+        <strong>IA:</strong> se você usar sua própria chave (BYOK), ela é cifrada com AES-256-GCM e
+        usada apenas para as suas gerações.
+      </li>
+      <li>
+        <strong>Segurança:</strong> data/hora, IP e user agent de eventos sensíveis (login, logout,
+        reset de senha, exclusão de conta) no log de auditoria.
+      </li>
+    </ul>
+
+    <h2>2. Base legal e finalidade</h2>
+    <ul>
+      <li>
+        <strong>Execução de contrato</strong> (art. 7º, V): operar a conta, gerar ações, entregar
+        lembretes e cobrar assinaturas.
+      </li>
+      <li>
+        <strong>Cumprimento de obrigação legal</strong> (art. 7º, II): registros de segurança e
+        fiscais.
+      </li>
+      <li>
+        <strong>Legítimo interesse</strong> (art. 7º, IX): prevenir fraude e abuso, com dados
+        minimizados.
+      </li>
+    </ul>
+
+    <h2>3. Compartilhamento</h2>
+    <p>
+      Não vendemos dados pessoais. Compartilhamos o mínimo necessário com operadores que viabilizam
+      o serviço: Stripe (pagamentos), provedor de e-mail transacional (lembretes e mensagens de
+      conta), provedor de IA escolhido para a geração (no modo gerenciado) e a infraestrutura de
+      hospedagem. Cada operador trata os dados conforme o próprio contrato e a LGPD.
+    </p>
+
+    <h2>4. Retenção</h2>
+    <ul>
+      <li>Dados da conta e conteúdo: enquanto a conta existir.</li>
+      <li>Log de auditoria: até 12 meses, anonimizado após a exclusão da conta.</li>
+      <li>Uso de IA (métricas de custo): até 24 meses, sem conteúdo das gerações.</li>
+      <li>Backups: rotação de 7 dias.</li>
+    </ul>
+
+    <h2>5. Seus direitos</h2>
+    <p>Você pode, a qualquer momento:</p>
+    <ul>
+      <li>
+        <strong>Exportar</strong> seus dados em JSON na tela
+        <em>Conta → Dados e privacidade → Exportar meus dados</em>.
+      </li>
+      <li>
+        <strong>Excluir</strong> definitivamente a conta e os dados associados na mesma tela
+        (confirmação com a palavra <code>EXCLUIR</code>). A exclusão cancela a assinatura Stripe,
+        apaga os dados e anonimiza o log de auditoria.
+      </li>
+      <li>
+        Solicitar <strong>correção</strong>, <strong>informação</strong> sobre tratamento ou
+        <strong>revogação de consentimento</strong> pelo canal de contato.
+      </li>
+    </ul>
+    <div class="card">
+      <strong>Exclusão de conta:</strong> os dados são removidos de forma definitiva. O log de
+      auditoria é mantido por segurança, mas sem vínculo com a sua identidade (sem e-mail, IP ou
+      metadados).
+    </div>
+
+    <h2>6. Segurança</h2>
+    <p>
+      Usamos HTTPS, cookies de sessão httpOnly, proteção CSRF, hash Argon2id para senhas,
+      criptografia das chaves BYOK e controle de acesso por usuário em todas as consultas. Nenhum
+      sistema é infalível: em caso de incidente relevante, comunicaremos os titulares e a ANPD
+      conforme a lei.
+    </p>
+
+    <h2>7. Contato</h2>
+    <p>
+      Para exercer direitos ou tirar dúvidas sobre privacidade, use a página de
+      <a href="/contato">contato</a>. Responderemos no prazo legal.
+    </p>
+
+    <footer>
+      <a href="/">Voltar</a> · <a href="/termos">Termos de Uso</a> · <a href="/contato">Contato</a>
+    </footer>
+  </body>
 </html>

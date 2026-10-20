@@ -8,6 +8,8 @@ const telegramChatsRepo = require('../repositories/telegramChats.repo');
 const usersRepo = require('../repositories/users.repo');
 const email = require('../integrations/email');
 const logger = require('../lib/logger');
+const metrics = require('../lib/metrics');
+const alertService = require('../services/alertService');
 
 function buildMessage(reminder) {
   return [
@@ -35,7 +37,10 @@ async function deliverReminder(reminder) {
       const ok = await telegram.sendMessage(message, target);
       return ok ? 'sent' : 'failed';
     } catch (error) {
-      logger.error({ error: error.message, reminderId: reminder.id }, '[reminders] falha ao enviar Telegram');
+      logger.error(
+        { error: error.message, reminderId: reminder.id },
+        '[reminders] falha ao enviar Telegram'
+      );
       return 'failed';
     }
   }
@@ -56,7 +61,10 @@ async function deliverReminder(reminder) {
       });
       return result && result.delivered ? 'sent' : 'failed';
     } catch (error) {
-      logger.error({ error: error.message, reminderId: reminder.id }, '[reminders] falha ao enviar e-mail');
+      logger.error(
+        { error: error.message, reminderId: reminder.id },
+        '[reminders] falha ao enviar e-mail'
+      );
       return 'failed';
     }
   }
@@ -84,7 +92,19 @@ async function processDueReminders(channels = ['telegram', 'email']) {
       } else {
         summary.skipped += 1;
       }
+      metrics.increment('reminders_delivered_total', 'Entregas de lembrete por canal e desfecho.', {
+        channel,
+        outcome
+      });
     }
+  }
+
+  if (summary.failed > 0) {
+    await alertService.raise(
+      'reminders_delivery_failed',
+      `${summary.failed} lembrete(s) falharam na entrega.`,
+      { failed: summary.failed, due: summary.due, sent: summary.sent, skipped: summary.skipped }
+    );
   }
 
   return summary;
@@ -95,7 +115,7 @@ function setupReminderScheduler() {
     try {
       await processDueReminders();
     } catch (error) {
-      console.error('Erro no scheduler de lembretes:', error);
+      logger.error({ err: error }, '[reminders] erro no scheduler');
     }
   });
 }

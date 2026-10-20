@@ -4,8 +4,8 @@ Esta pasta é a fonte da verdade para evoluir o PRAXIS de um MVP local para um
 produto SaaS multi-usuário, com controle de acesso, banco de dados gerenciado,
 IA com custo controlado, landing page e pagamento via Stripe.
 
-> Status: **Fases 1–7 concluídas** ✅. Próximas fases: hardening/LGPD (8) e
-> lançamento (9) conforme o [roadmap](12-roadmap-fases.md).
+> Status: **Fases 1–8 concluídas** ✅. Próxima fase: lançamento (9) conforme o
+> [roadmap](12-roadmap-fases.md).
 
 ## Índice
 
@@ -24,6 +24,7 @@ IA com custo controlado, landing page e pagamento via Stripe.
 | 11 | [Landing page](11-landing-page.md) | Estrutura, seções, copy, SEO, rotas |
 | 12 | [Roadmap por fases](12-roadmap-fases.md) | Fases, tarefas, entregáveis, critérios de aceite |
 | 13 | [Deploy no Kymus](13-deploy-kymus.md) | Build, Docker, variáveis, jobs, checklist |
+| 14 | [Segurança, LGPD e operação](14-checklist-seguranca-lgpd.md) | OWASP, direitos do titular, métricas/alertas, backup/restore |
 
 Documentos de apoio na raiz:
 

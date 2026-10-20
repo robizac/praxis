@@ -5,6 +5,8 @@ const billingService = require('../../services/billingService');
 const telegramService = require('../../services/telegramService');
 const { config } = require('../../config/env');
 const logger = require('../../lib/logger');
+const metrics = require('../../lib/metrics');
+const alertService = require('../../services/alertService');
 
 const router = express.Router();
 
@@ -18,8 +20,20 @@ router.post('/webhooks/stripe', async (req, res, next) => {
     const signature = req.get('stripe-signature');
     const raw = req.rawBody ? req.rawBody.toString('utf8') : JSON.stringify(req.body || {});
     const result = await billingService.handleWebhook(raw, signature);
+    metrics.increment('stripe_webhooks_total', 'Webhooks da Stripe recebidos por desfecho.', {
+      outcome: result.duplicate ? 'duplicate' : 'processed'
+    });
     res.json({ received: true, duplicate: Boolean(result.duplicate) });
   } catch (error) {
+    metrics.increment('stripe_webhooks_total', 'Webhooks da Stripe recebidos por desfecho.', {
+      outcome: 'error'
+    });
+    await alertService.raise(
+      'stripe_webhook_failure',
+      'Falha ao processar webhook da Stripe.',
+      { error: error.message },
+      { severity: 'critical' }
+    );
     next(error);
   }
 });
@@ -51,6 +65,13 @@ router.post('/webhooks/telegram', async (req, res) => {
     }
   } catch (error) {
     logger.error({ error: error.message }, '[telegram] falha ao processar webhook');
+    await alertService.raise(
+      'telegram_webhook_failure',
+      'Falha ao processar webhook do Telegram.',
+      {
+        error: error.message
+      }
+    );
   }
 
   res.json({ ok: true });

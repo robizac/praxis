@@ -42,6 +42,9 @@
       letter-spacing: 0.04em;
       text-transform: uppercase;
     }
+    .logo.centered {
+      justify-content: center;
+    }
     .logo-dot {
       width: 10px;
       height: 10px;
@@ -126,6 +129,9 @@
       flex-wrap: wrap;
       margin-top: 1.6rem;
     }
+    .actions.centered {
+      justify-content: center;
+    }
     .card-grid {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
@@ -140,6 +146,13 @@
       display: flex;
       flex-direction: column;
       gap: 0.8rem;
+    }
+    .cta-card {
+      text-align: center;
+      gap: 1rem;
+    }
+    .cta-card h2 {
+      margin: 0;
     }
     .muted {
       color: var(--muted);
@@ -243,6 +256,13 @@
       list-style: none;
       margin: 0;
       padding: 0;
+    }
+    .footer-links.centered {
+      justify-content: center;
+    }
+    .footer-note {
+      text-align: center;
+      margin: 0;
     }
     .footer-links a {
       color: var(--muted);

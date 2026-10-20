@@ -10,7 +10,8 @@ Estimativas em **semanas de 1 dev** (ajustar conforme time). Dependências são 
 > **Fase 5 implementada** ✅ (Stripe: checkout, portal, webhook idempotente, entitlements por plano).
 > **Fase 6 implementada** ✅ (landing page com SEO + roteamento `/`/`/app`).
 > **Fase 7 implementada** ✅ (worker `npm run worker`; e-mail e Telegram por usuário; lembrete default configurável).
-> Próxima: Fase 8 (hardening, observabilidade e LGPD). Pendência: confirmar preços finais do Pro.
+> **Fase 8 implementada** ✅ (CSP/headers, LGPD, métricas e alertas, testes/cobertura, backups).
+> Próxima: Fase 9 (lançamento). Pendência: confirmar preços finais do Pro.
 
 ```
 F0 Descoberta ─▶ F1 Fundação ─▶ F2 Acesso ─▶ F3 Multi-tenant ─▶ F4 IA/Custos
@@ -241,18 +242,35 @@ Dependências: F3.
 > cota/prazo (apenas ignora e registra um aviso).
 
 
-## Fase 8 — Hardening, observabilidade e LGPD (1 semana)
+## Fase 8 — Hardening, observabilidade e LGPD (1 semana) ✅
 **Objetivo**: pronto para produção.
 
 Tarefas:
-- [ ] CSP com JS/CSS externos (remover inline do HTML), headers completos.
-- [ ] Exportação e exclusão de dados do usuário (LGPD); termos/privacidade.
-- [ ] Métricas de negócio + alertas (webhook, worker, 5xx, custo IA).
-- [ ] Cobertura de testes nos alvos; revisão de segurança (OWASP).
-- [ ] Backups e teste de restauração.
+- [x] CSP com JS/CSS externos (remover inline do HTML), headers completos.
+- [x] Exportação e exclusão de dados do usuário (LGPD); termos/privacidade.
+- [x] Métricas de negócio + alertas (webhook, worker, 5xx, custo IA).
+- [x] Cobertura de testes nos alvos; revisão de segurança (OWASP).
+- [x] Backups e teste de restauração.
 
 Aceite: checklist de segurança e LGPD completo; alertas ativos.
 Dependências: F5, F6, F7.
+
+> **Implementação**: `src/http/middleware/security.js` (CSP sem `unsafe-inline`,
+> `Permissions-Policy`, HSTS em produção), HTML/CSS/JS 100% externos
+> (`web/app/{index.html,styles.css,app.js}` e `web/landing/*`), rotas
+> `/termos`, `/privacidade` e `/contato`.
+> **LGPD**: `GET /api/account/export` (inclui `auditLog`), `DELETE /api/account`
+> (hard delete + anonimização do audit + evento `account.deleted` sem PII) e
+> páginas legais com direitos, base legal e retenção.
+> **Observabilidade**: `src/lib/metrics.js` + `/metrics` (Prometheus, opcional
+> `METRICS_TOKEN`), `src/services/alertService.js` (log estruturado + e-mail,
+> cooldown), `src/jobs/alerts.job.js` (5xx e custo de IA a cada 5 min), alertas
+> de webhook Stripe/Telegram e de falha do worker de lembretes.
+> **Testes**: `test/{health,security,metrics,alerts,backup}.test.js`,
+> `npm run test:coverage` (Node test runner, thresholds 75/65/75).
+> **Backups**: `scripts/backup.js` (Postgres `pg_dump` / SQLite `VACUUM INTO`,
+> rotação) e `scripts/backup-restore.js` (valida integridade/schema).
+> Checklist completo em [14](14-checklist-seguranca-lgpd.md).
 
 ## Fase 9 — Lançamento no Kymus (2–3 dias)
 **Objetivo**: publicar em `dash.kymus.app/hosting`.
@@ -280,7 +298,7 @@ Dependências: F8.
 | F5 | Stripe + entitlements | 1,5–2 sem | F4 |
 | F6 | Landing page | 1 sem | F5 |
 | F7 | Lembretes confiáveis | 1 sem | F3 |
-| F8 | Hardening + LGPD | 1 sem | F5,F6,F7 |
+| F8 | Hardening + LGPD ✅ | 1 sem | F5,F6,F7 |
 | F9 | Lançamento | 2–3 d | F8 |
 
 **Total estimado**: ~10–12 semanas de 1 dev (F6 e F7 podem ser paralelas com 2 pessoas).

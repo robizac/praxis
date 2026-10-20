@@ -279,10 +279,15 @@ Passos aditivos, executáveis uma vez, com log de contagem.
 - Nenhuma query de lista sem `WHERE user_id = $1`.
 - Exclusões em cascata via FK (`ON DELETE CASCADE`).
 - Dados sensíveis (chaves) nunca em `SELECT *` retornado ao cliente.
-- Soft delete de usuário (`status='deleted'`) + job de anonimização.
+- Exclusão de conta: **hard delete** das tabelas do usuário + anonimização do
+  `audit_log` (sem `user_id`, IP ou metadados). Ver `src/repositories/account.repo.js`.
 
 ## 7.7 Backup e retenção
 
 - Backup diário do Postgres (retenção 7 dias, ponto no tempo se disponível).
-- Teste de restauração a cada trimestre.
+- Scripts: `npm run backup` (Postgres via `pg_dump`, SQLite via `VACUUM INTO`)
+  e `npm run backup:test-restore` (valida integridade, tabelas e migrações).
+  Rotação controlada por `BACKUP_RETENTION` (padrão 7) e destino por `BACKUP_DIR`.
+- Teste de restauração a cada trimestre (procedimento em
+  [14](14-checklist-seguranca-lgpd.md#144-backup-e-restauração)).
 - `audit_log` retido por 12 meses; `ai_usage` por 24 meses (relatórios).

@@ -97,12 +97,13 @@ Página/rota sem sessão no front: redireciona para `/entrar?next=...`.
 | Assinatura Pro | atualiza `subscriptions` via webhook; entitlements passam a Pro |
 | Cancelamento | mantém Pro até `current_period_end`; depois rebaixa a Free |
 | Falha de pagamento | `past_due` por 7 dias → rebaixa (`unpaid`) |
-| Exclusão de conta | soft delete + anonimização (LGPD) + revogação de sessões |
+| Exclusão de conta | hard delete dos dados + anonimização do `audit_log` (LGPD); assinatura Stripe cancelada; sessões revogadas |
 
 ## 8.6 Segurança de sessão e CSRF
 
 - Rotas mutáveis exigem token CSRF (double-submit cookie: `praxis_csrf` + header `X-CSRF-Token`).
-- `helmet` para headers (CSP sem `unsafe-inline` — mover JS/CSS inline do `index.html` para arquivos; Fase 8).
+- `helmet` para headers, com CSP restritiva: HTML/CSS/JS externos, `script-src 'self'`,
+  `style-src 'self'` (sem `unsafe-inline`) e `Permissions-Policy` (Fase 8).
 - Rate limit: auth `20/15min/IP`; `/api/praxis` `30/min`; API geral `120/min`.
 - Registrar logins falhos e mudanças de senha em `audit_log` (ações `auth.*`).
 

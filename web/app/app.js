@@ -263,7 +263,7 @@
         ui.resAcao.textContent = data.acao;
         ui.resPrazo.textContent = data.prazo;
         ui.resRegra.textContent = data.regraMinima || data.regra_minima;
-        ui.resultCards.style.display = 'grid';
+        ui.resultCards.hidden = false;
 
         const notes = [];
         if (data.warning) {
@@ -644,7 +644,7 @@
     }
 
     function showAuth(view = 'login') {
-      authUi.shell.style.display = 'none';
+      authUi.shell.hidden = true;
       Object.values(screens).forEach((node) => node.classList.remove('active'));
       authUi.screen.classList.add('active');
 
@@ -661,7 +661,7 @@
 
     function showApp(user) {
       authUi.screen.classList.remove('active');
-      authUi.shell.style.display = 'block';
+      authUi.shell.hidden = false;
       authUi.userEmail.textContent = user?.email || '';
       if (!location.hash) {
         location.hash = '#/home';

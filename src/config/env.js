@@ -131,7 +131,9 @@ const isProduction = nodeEnv === 'production';
 const configuredProvider = String(process.env.AI_PROVIDER || 'ollama').toLowerCase();
 // O provider gerenciado da plataforma precisa ser remoto em produção (BYOK aceita qualquer um).
 const provider = isProduction
-  ? (REMOTE_AI_PROVIDERS.includes(configuredProvider) ? configuredProvider : 'openai')
+  ? REMOTE_AI_PROVIDERS.includes(configuredProvider)
+    ? configuredProvider
+    : 'openai'
   : configuredProvider;
 
 const config = {
@@ -170,6 +172,18 @@ const config = {
     from: process.env.EMAIL_FROM || 'PRAXIS <no-reply@localhost>'
   },
 
+  alerts: {
+    // Destino dos alertas operacionais (webhook, worker, 5xx, custo de IA).
+    // Sem ALERT_EMAIL, os alertas continuam no log estruturado (`alert: true`).
+    email: process.env.ALERT_EMAIL || '',
+    cooldownMinutes: toInt(process.env.ALERT_COOLDOWN_MINUTES, 60),
+    http5xxThreshold: toInt(process.env.ALERT_HTTP_5XX_THRESHOLD, 10),
+    aiCostRatio: toNumber(process.env.ALERT_AI_COST_RATIO, 0.8)
+  },
+
+  // Se definido, /metrics exige `Authorization: Bearer <token>`.
+  metricsToken: process.env.METRICS_TOKEN || '',
+
   stripe: {
     secretKey: process.env.STRIPE_SECRET_KEY || '',
     webhookSecret: process.env.STRIPE_WEBHOOK_SECRET || '',
@@ -192,7 +206,9 @@ function validate() {
   const warnings = [];
 
   if (!VALID_AI_PROVIDERS.includes(config.ai.provider)) {
-    errors.push(`AI_PROVIDER inválido: "${config.ai.provider}" (use ${VALID_AI_PROVIDERS.join(' ou ')}).`);
+    errors.push(
+      `AI_PROVIDER inválido: "${config.ai.provider}" (use ${VALID_AI_PROVIDERS.join(' ou ')}).`
+    );
   }
   if (!Number.isInteger(config.port) || config.port < 1 || config.port > 65535) {
     errors.push(`PORT inválida: "${process.env.PORT}".`);
@@ -202,12 +218,25 @@ function validate() {
   // o app sobe mesmo assim, mas avisa que o valor deveria ser definido no host.
   warnings.push(...autoSecretWarnings);
 
+  if (config.alerts.email && !(config.email.provider && config.email.apiKey)) {
+    warnings.push(
+      'ALERT_EMAIL definido sem EMAIL_PROVIDER/EMAIL_API_KEY — alertas operacionais irão apenas para o log.'
+    );
+  }
+
   if (isProduction) {
     if (!config.databaseUrl) {
       warnings.push('DATABASE_URL não definida — usando SQLite local mesmo em produção.');
     }
     if (!config.ai.managedOpenaiKey && config.ai.provider === 'openai') {
-      warnings.push('Nenhuma chave de IA gerenciada configurada (MANAGED_OPENAI_API_KEY/OPENAI_API_KEY).');
+      warnings.push(
+        'Nenhuma chave de IA gerenciada configurada (MANAGED_OPENAI_API_KEY/OPENAI_API_KEY).'
+      );
+    }
+    if (!config.metricsToken) {
+      warnings.push(
+        '/metrics está público (apenas contadores agregados). Defina METRICS_TOKEN para exigir Bearer token.'
+      );
     }
   } else {
     if (config.ai.provider === 'openai' && !config.ai.openaiApiKey && !config.ai.managedOpenaiKey) {

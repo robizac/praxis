@@ -11,6 +11,10 @@
       box-sizing: border-box;
     }
 
+    [hidden] {
+      display: none !important;
+    }
+
     body {
       margin: 0;
       font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
@@ -40,6 +44,10 @@
       font-size: 1.05rem;
       font-weight: 700;
       letter-spacing: 0.03em;
+    }
+
+    .brand.auth-brand {
+      margin-bottom: 14px;
     }
 
     .nav {
@@ -130,6 +138,10 @@
       grid-template-columns: repeat(2, minmax(0, 1fr));
     }
 
+    .row.spaced {
+      margin-top: 10px;
+    }
+
     .controls {
       display: grid;
       gap: 8px;
@@ -180,6 +192,10 @@
       display: grid;
       gap: 10px;
       grid-template-columns: 1fr;
+    }
+
+    .review-list {
+      margin-top: 14px;
     }
 
     .card {
