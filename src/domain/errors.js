@@ -6,7 +6,10 @@
  */
 
 class AppError extends Error {
-  constructor(message, { status = 500, code = 'internal_error', details, expose = true, cause } = {}) {
+  constructor(
+    message,
+    { status = 500, code = 'internal_error', details, expose = true, cause } = {}
+  ) {
     super(message);
     this.name = 'AppError';
     this.status = status;

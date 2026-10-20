@@ -86,5 +86,7 @@ async function ensurePrice(stripe, product, spec) {
 
   console.log('\nCole no .env:\n');
   lines.forEach((line) => console.log(line));
-  console.log('\nWebhook: aponte para /webhooks/stripe e copie o signing secret para STRIPE_WEBHOOK_SECRET.');
+  console.log(
+    '\nWebhook: aponte para /webhooks/stripe e copie o signing secret para STRIPE_WEBHOOK_SECRET.'
+  );
 })();

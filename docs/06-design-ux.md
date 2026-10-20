@@ -24,17 +24,21 @@ Landing (/)                      App (/app)
 ## 6.3 Telas
 
 ### T1 — Landing page (pública, `/`)
+
 Seções e objetivo em [11-landing-page.md](11-landing-page.md).
 
 ### T2 — Cadastro (`/cadastro`)
+
 - Campos: nome, e-mail, senha (+ medidor de força), aceite de termos.
 - Alternativa: "Continuar com Google".
 - Link para "Já tenho conta".
 
 ### T3 — Login (`/entrar`)
+
 - E-mail + senha, "esqueci minha senha", link para cadastro.
 
 ### T4 — Início (`/app`, aba Início)
+
 - Label + textarea "O que você aprendeu?".
 - Select "Área da Vida".
 - Botão "Transformar em Ação" (desabilita com 2 pendentes + aviso).
@@ -42,25 +46,30 @@ Seções e objetivo em [11-landing-page.md](11-landing-page.md).
 - Indicador de cota: "X de Y gerações neste mês" (Pro).
 
 ### T5 — Histórico (`/app`, aba Histórico)
+
 - Filtros: Área, Status, busca, ordenação.
 - Cards com badges (área/status), ação, prazo, criado em; botão Concluir/Reabrir.
 - Ações secundárias: editar tags, excluir.
 
 ### T6 — Revisão Semanal (`/app`, aba Revisão)
+
 - 4 textareas (executei / trouxe paz / gerou peso / deve sair).
 - Botão Salvar; lista colapsável das últimas revisões.
 
 ### T7 — Conta / Plano (`/app/conta`)
+
 - Perfil (nome, fuso), trocar senha, excluir conta.
 - Plano atual, uso do mês, botões "Assinar Pro" / "Gerenciar assinatura" (Portal Stripe).
 - Chaves de IA (BYOK): conectar/remover, com aviso de segurança.
 
 ### T8 — Admin (`/admin`, papel `admin`)
+
 - Usuários (plano, status, uso), assinaturas, MRR.
 
 ## 6.4 Wireframes de baixa fidelidade
 
 **Início (mobile)**
+
 ```
 ┌────────────────────────────┐
 │ ● PRAXIS        [Início ▾] │
@@ -88,6 +97,7 @@ Seções e objetivo em [11-landing-page.md](11-landing-page.md).
 ```
 
 **Paywall de cota (Pro)**
+
 ```
 ┌────────────────────────────┐
 │  Você usou 300/300          │
@@ -118,18 +128,30 @@ A SPA atual já usa variáveis CSS. Consolidar:
   --info: #2b5f9e;
 
   /* tipografia */
-  --font-sans: "Helvetica Neue", Helvetica, Arial, sans-serif;
-  --fs-h1: 1.5rem; --fs-h2: 1.25rem; --fs-body: 1rem; --fs-sm: .9rem; --fs-xs: .77rem;
+  --font-sans: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  --fs-h1: 1.5rem;
+  --fs-h2: 1.25rem;
+  --fs-body: 1rem;
+  --fs-sm: 0.9rem;
+  --fs-xs: 0.77rem;
 
   /* espaçamento (escala 4px) */
-  --sp-1: 4px; --sp-2: 8px; --sp-3: 12px; --sp-4: 16px; --sp-5: 24px; --sp-6: 32px;
+  --sp-1: 4px;
+  --sp-2: 8px;
+  --sp-3: 12px;
+  --sp-4: 16px;
+  --sp-5: 24px;
+  --sp-6: 32px;
 
   /* forma */
-  --radius-sm: 8px; --radius-md: 10px; --radius-lg: 14px; --radius-pill: 999px;
+  --radius-sm: 8px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
+  --radius-pill: 999px;
 
   /* sombra */
-  --shadow-1: 0 1px 2px rgba(0,0,0,.05);
-  --shadow-2: 0 4px 16px rgba(0,0,0,.08);
+  --shadow-1: 0 1px 2px rgba(0, 0, 0, 0.05);
+  --shadow-2: 0 4px 16px rgba(0, 0, 0, 0.08);
 }
 ```
 
@@ -139,16 +161,16 @@ A SPA atual já usa variáveis CSS. Consolidar:
 
 ## 6.6 Componentes reutilizáveis
 
-| Componente | Uso |
-|---|---|
-| `Button` (primary/secondary/danger) | CTAs e ações |
-| `Card` | Resultado, item de histórico, seção |
-| `Badge` | Área e status |
-| `Notice` | Avisos/erros inline |
-| `Dialog` | Confirmação de exclusão, paywall |
-| `Field` (label+input+erro) | Formulários |
-| `Meter` | Cota de IA |
-| `Skeleton` | Carregamento de listas |
+| Componente                          | Uso                                 |
+| ----------------------------------- | ----------------------------------- |
+| `Button` (primary/secondary/danger) | CTAs e ações                        |
+| `Card`                              | Resultado, item de histórico, seção |
+| `Badge`                             | Área e status                       |
+| `Notice`                            | Avisos/erros inline                 |
+| `Dialog`                            | Confirmação de exclusão, paywall    |
+| `Field` (label+input+erro)          | Formulários                         |
+| `Meter`                             | Cota de IA                          |
+| `Skeleton`                          | Carregamento de listas              |
 
 ## 6.7 Acessibilidade
 
@@ -160,10 +182,10 @@ A SPA atual já usa variáveis CSS. Consolidar:
 
 ## 6.8 Microcopy (exemplos)
 
-| Contexto | Texto |
-|---|---|
-| Botão principal | "Transformar em Ação" |
-| Limite pendentes | "Você já tem 2 ações pendentes. Conclua 1 para gerar outra." |
-| Erro IA | "Não entendi a resposta da IA — gere novamente." |
-| Cota esgotada | "Você usou o plano deste mês. Faça upgrade ou conecte sua chave de IA." |
-| Sucesso revisão | "Revisão salva. Fechou o ciclo com clareza." |
+| Contexto         | Texto                                                                   |
+| ---------------- | ----------------------------------------------------------------------- |
+| Botão principal  | "Transformar em Ação"                                                   |
+| Limite pendentes | "Você já tem 2 ações pendentes. Conclua 1 para gerar outra."            |
+| Erro IA          | "Não entendi a resposta da IA — gere novamente."                        |
+| Cota esgotada    | "Você usou o plano deste mês. Faça upgrade ou conecte sua chave de IA." |
+| Sucesso revisão  | "Revisão salva. Fechou o ciclo com clareza."                            |

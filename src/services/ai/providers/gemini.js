@@ -13,7 +13,11 @@ const DEFAULT_BASE_URL = 'https://generativelanguage.googleapis.com/v1beta';
  */
 async function generate({ input, area, apiKey, model, baseUrl }) {
   if (!apiKey) {
-    throw new ProviderError('gemini', 'Nenhuma chave do Google Gemini configurada.', 'Informe uma chave BYOK.');
+    throw new ProviderError(
+      'gemini',
+      'Nenhuma chave do Google Gemini configurada.',
+      'Informe uma chave BYOK.'
+    );
   }
 
   const usedModel = model || 'gemini-2.0-flash';
@@ -38,7 +42,11 @@ async function generate({ input, area, apiKey, model, baseUrl }) {
       })
     });
   } catch (_error) {
-    throw new ProviderError('gemini', 'Não foi possível conectar ao Google Gemini.', 'Verifique sua conexão e a chave.');
+    throw new ProviderError(
+      'gemini',
+      'Não foi possível conectar ao Google Gemini.',
+      'Verifique sua conexão e a chave.'
+    );
   } finally {
     timeout.done();
   }
@@ -58,7 +66,11 @@ async function generate({ input, area, apiKey, model, baseUrl }) {
     data?.candidates?.[0]?.content?.parts?.map((part) => part?.text || '').join('') || ''
   ).trim();
   if (!text) {
-    throw new ProviderError('gemini', 'Gemini retornou resposta vazia.', 'Tente novamente ou ajuste o modelo.');
+    throw new ProviderError(
+      'gemini',
+      'Gemini retornou resposta vazia.',
+      'Tente novamente ou ajuste o modelo.'
+    );
   }
 
   const meta = data?.usageMetadata;

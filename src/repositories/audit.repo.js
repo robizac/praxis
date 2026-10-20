@@ -24,4 +24,16 @@ async function listRecent(limit = 100) {
   return db.all('SELECT * FROM audit_log ORDER BY created_at DESC LIMIT ?', [limit]);
 }
 
-module.exports = { insert, listRecent };
+/** Eventos de auditoria de um usuário (LGPD — portabilidade). */
+async function listByUser(userId, limit = 1000) {
+  return db.all(
+    `SELECT id, action, entity, entity_id, metadata, ip, created_at
+       FROM audit_log
+      WHERE user_id = ?
+      ORDER BY created_at DESC
+      LIMIT ?`,
+    [userId, limit]
+  );
+}
+
+module.exports = { insert, listRecent, listByUser };

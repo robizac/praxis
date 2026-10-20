@@ -9,13 +9,53 @@ const rateLimit = rateLimitModule.rateLimit || rateLimitModule.default || rateLi
 const isTest = config.nodeEnv === 'test';
 
 /**
- * CSP desativada por enquanto: a SPA ainda usa CSS/JS inline.
- * Fase 8 externaliza os assets e habilita uma política restritiva.
+ * Content Security Policy (Fase 8).
+ *
+ * HTML, CSS e JS são totalmente externos: o markup não tem `<script>` nem
+ * `<style>`/`style="..."` inline (blocos JSON-LD são data blocks e não passam
+ * pelo `script-src`). Isso permite `script-src 'self'` e `style-src 'self'`
+ * sem `'unsafe-inline'`, a defesa principal contra XSS injetado no HTML.
+ *
+ * `connect-src 'self'`: a SPA só fala com `/api/*` no mesmo origem.
  */
+const contentSecurityPolicy = {
+  directives: {
+    'default-src': ["'self'"],
+    'base-uri': ["'self'"],
+    'object-src': ["'none'"],
+    'frame-ancestors': ["'self'"],
+    'form-action': ["'self'"],
+    'script-src': ["'self'"],
+    'script-src-attr': ["'none'"],
+    'style-src': ["'self'"],
+    'img-src': ["'self'", 'data:'],
+    'font-src': ["'self'", 'data:'],
+    'connect-src': ["'self'"],
+    // Sob HTTPS, força subrecursos a também usarem HTTPS. Em dev (http) isso
+    // quebraria os assets locais, então só entra em produção.
+    ...(config.isProduction ? { 'upgrade-insecure-requests': [] } : {})
+  }
+};
+
 const helmetMiddleware = helmet({
-  contentSecurityPolicy: false,
-  crossOriginEmbedderPolicy: false
+  contentSecurityPolicy,
+  crossOriginEmbedderPolicy: false,
+  // HSTS só faz sentido sob HTTPS (produção). Em dev (http) o browser ignora.
+  hsts: config.isProduction
 });
+
+/**
+ * Headers que o helmet não cobre por padrão (Fase 8).
+ * Negar por padrão APIs de browser que o app não usa reduz a superfície de
+ * ataque (ex.: script injetado tentando acessar câmera/microfone).
+ */
+const permissionsPolicyMiddleware = (_req, res, next) => {
+  res.setHeader(
+    'Permissions-Policy',
+    'camera=(), microphone=(), geolocation=(), payment=(), usb=(), interest-cohort=()'
+  );
+  next();
+};
 
 const corsMiddleware = cors({
   origin: config.isProduction ? config.appUrl : true,
@@ -52,4 +92,11 @@ const authLimiter = makeLimiter({
   message: 'Muitas tentativas. Aguarde alguns minutos e tente novamente.'
 });
 
-module.exports = { helmetMiddleware, corsMiddleware, apiLimiter, aiLimiter, authLimiter };
+module.exports = {
+  helmetMiddleware,
+  permissionsPolicyMiddleware,
+  corsMiddleware,
+  apiLimiter,
+  aiLimiter,
+  authLimiter
+};

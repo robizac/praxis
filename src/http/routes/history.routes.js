@@ -46,7 +46,9 @@ router.delete('/history/:id', async (req, res, next) => {
 
 router.get('/upcoming', async (req, res, next) => {
   try {
-    res.json(await praxisService.upcoming(req.user.id, String(req.query.window || '24h').toLowerCase()));
+    res.json(
+      await praxisService.upcoming(req.user.id, String(req.query.window || '24h').toLowerCase())
+    );
   } catch (error) {
     next(error);
   }

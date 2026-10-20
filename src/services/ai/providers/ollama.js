@@ -58,7 +58,11 @@ async function generate({ input, area, model, baseUrl }) {
   const data = await response.json();
   const text = String(data?.message?.content || '').trim();
   if (!text) {
-    throw new ProviderError('ollama', 'Ollama retornou resposta vazia.', `Teste manualmente em ${url}.`);
+    throw new ProviderError(
+      'ollama',
+      'Ollama retornou resposta vazia.',
+      `Teste manualmente em ${url}.`
+    );
   }
 
   const usage = data?.prompt_eval_count

@@ -11,7 +11,9 @@ const AREAS = [
 const AREA_FALLBACK = 'Energia & Ritmo';
 
 function normalizeArea(area) {
-  const value = String(area || '').trim().toLowerCase();
+  const value = String(area || '')
+    .trim()
+    .toLowerCase();
   const found = AREAS.find((item) => item.toLowerCase() === value);
   return found || AREA_FALLBACK;
 }

@@ -1,11 +1,7 @@
 'use strict';
 
 const usersRepo = require('../repositories/users.repo');
-const {
-  REMINDER_CHANNELS,
-  BadRequestError,
-  NotFoundError
-} = require('../domain');
+const { REMINDER_CHANNELS, BadRequestError, NotFoundError } = require('../domain');
 
 const DEFAULT_CHANNEL = 'browser';
 const DEFAULT_LEAD_MINUTES = 10;

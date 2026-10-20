@@ -4,11 +4,11 @@
 
 Assinatura recorrente (Billing) com dois planos pagos, em **BRL**:
 
-| Plano | Preço | Ciclo | Stripe Product | Stripe Price |
-|---|---|---|---|---|
-| Pro | R$ 27,00 | mensal | `prod_pro` | `price_pro_monthly` |
-| Pro Anual | R$ 197,00 (≈ R$16,42/mês) | anual | `prod_pro_annual` | `price_pro_annual` |
-| Free | R$ 0 | — | (sem Stripe) | — |
+| Plano     | Preço                     | Ciclo  | Stripe Product    | Stripe Price        |
+| --------- | ------------------------- | ------ | ----------------- | ------------------- |
+| Pro       | R$ 27,00                  | mensal | `prod_pro`        | `price_pro_monthly` |
+| Pro Anual | R$ 197,00 (≈ R$16,42/mês) | anual  | `prod_pro_annual` | `price_pro_annual`  |
+| Free      | R$ 0                      | —      | (sem Stripe)      | —                   |
 
 O preço final é decisão a aprovar (ver [09](09-ia-e-custos.md) para viabilidade).
 Ambos têm **trial de 7 dias** (`trial_period_days: 7`), configurável.
@@ -39,27 +39,27 @@ uso otimista + refresh em foco.
 
 ## 10.3 Endpoints da aplicação
 
-| Método | Rota | Função |
-|---|---|---|
-| GET | `/api/billing/plans` | catálogo de planos/preços públicos |
-| GET | `/api/billing/subscription` | assinatura do usuário + entitlement |
-| POST | `/api/billing/checkout` | cria Checkout Session |
-| POST | `/api/billing/portal` | cria sessão do Portal do cliente |
-| POST | `/webhooks/stripe` | recebe eventos (raw body, assinatura verificada) |
+| Método | Rota                        | Função                                           |
+| ------ | --------------------------- | ------------------------------------------------ |
+| GET    | `/api/billing/plans`        | catálogo de planos/preços públicos               |
+| GET    | `/api/billing/subscription` | assinatura do usuário + entitlement              |
+| POST   | `/api/billing/checkout`     | cria Checkout Session                            |
+| POST   | `/api/billing/portal`       | cria sessão do Portal do cliente                 |
+| POST   | `/webhooks/stripe`          | recebe eventos (raw body, assinatura verificada) |
 
 ## 10.4 Webhooks (fonte da verdade)
 
 Verificar assinatura com `STRIPE_WEBHOOK_SECRET`; responder `200` rápido;
 processar de forma idempotente por `event.id` (tabela `stripe_events`).
 
-| Evento | Ação |
-|---|---|
-| `checkout.session.completed` | vincula customer/subscription ao usuário; ativa plano |
+| Evento                                  | Ação                                                                    |
+| --------------------------------------- | ----------------------------------------------------------------------- |
+| `checkout.session.completed`            | vincula customer/subscription ao usuário; ativa plano                   |
 | `customer.subscription.created/updated` | atualiza `plan`, `status`, `current_period_end`, `cancel_at_period_end` |
-| `customer.subscription.deleted` | rebaixa para `free` ao fim do período |
-| `invoice.paid` | confirma renovação; registra receita |
-| `invoice.payment_failed` | marca `past_due`; dispara e-mail; retry Stripe |
-| `customer.updated` | sincroniza e-mail/endereço quando necessário |
+| `customer.subscription.deleted`         | rebaixa para `free` ao fim do período                                   |
+| `invoice.paid`                          | confirma renovação; registra receita                                    |
+| `invoice.payment_failed`                | marca `past_due`; dispara e-mail; retry Stripe                          |
+| `customer.updated`                      | sincroniza e-mail/endereço quando necessário                            |
 
 Mapeamento de status Stripe → interno: `trialing→trialing`, `active→active`,
 `past_due→past_due`, `canceled→canceled`, `unpaid→unpaid`, `incomplete→incomplete`.
@@ -113,15 +113,15 @@ BILLING_TRIAL_DAYS=7
 
 ## 10.11 Implementação (Fase 5)
 
-| Peça | Arquivo |
-|---|---|
-| Migração | `src/db/migrations/{sqlite,postgres}/005_billing.sql` |
+| Peça             | Arquivo                                                                                         |
+| ---------------- | ----------------------------------------------------------------------------------------------- |
+| Migração         | `src/db/migrations/{sqlite,postgres}/005_billing.sql`                                           |
 | SDK + assinatura | `src/integrations/stripe.js` (`getStripe`, `constructEvent`, `priceIdForPlan`/`planForPriceId`) |
-| Assinaturas | `src/repositories/subscriptions.repo.js` |
-| Idempotência | `src/repositories/stripeEvents.repo.js` |
-| Regras | `src/services/billingService.js` (checkout, portal, `applyEvent`, `handleWebhook`) |
-| Rotas | `src/http/routes/billing.routes.js`, `src/http/routes/webhooks.routes.js` |
-| Setup de preços | `scripts/stripe-setup.js` (`npm run stripe:setup`) |
+| Assinaturas      | `src/repositories/subscriptions.repo.js`                                                        |
+| Idempotência     | `src/repositories/stripeEvents.repo.js`                                                         |
+| Regras           | `src/services/billingService.js` (checkout, portal, `applyEvent`, `handleWebhook`)              |
+| Rotas            | `src/http/routes/billing.routes.js`, `src/http/routes/webhooks.routes.js`                       |
+| Setup de preços  | `scripts/stripe-setup.js` (`npm run stripe:setup`)                                              |
 
 - Plano efetivo em `attachUser` → `req.user.plan`; `GET /api/auth/me` devolve
   `plan` + `entitlements`; `POST /api/praxis` usa o plano efetivo nas cotas.

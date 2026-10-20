@@ -2,6 +2,7 @@ node_modules
 .env
 praxis.db
 praxis.db-*
+backups/
 npm-debug.log*
 .data/
 .opencode/node_modules/

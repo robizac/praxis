@@ -15,7 +15,9 @@ function monthStartIso(now = new Date()) {
 }
 
 function dayStartIso(now = new Date()) {
-  return new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate())).toISOString();
+  return new Date(
+    Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate())
+  ).toISOString();
 }
 
 function resolvePlanId(user, planId) {

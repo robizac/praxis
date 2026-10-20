@@ -51,7 +51,13 @@ test('reminders: canal email é aceito', { skip }, async () => {
   assert.equal(reminder.channel, 'email');
 
   await assert.rejects(
-    () => reminderService.create({ userId: user.id, praxisId, remindAtIso: new Date().toISOString(), channel: 'sms' }),
+    () =>
+      reminderService.create({
+        userId: user.id,
+        praxisId,
+        remindAtIso: new Date().toISOString(),
+        channel: 'sms'
+      }),
     /channel/i
   );
 });

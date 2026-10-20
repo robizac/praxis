@@ -50,7 +50,11 @@ async function generate({ input, area, apiKey, model, baseUrl }) {
       })
     });
   } catch (_error) {
-    throw new ProviderError('openai', 'Não foi possível conectar à OpenAI.', 'Verifique sua conexão e a chave.');
+    throw new ProviderError(
+      'openai',
+      'Não foi possível conectar à OpenAI.',
+      'Verifique sua conexão e a chave.'
+    );
   } finally {
     timeout.done();
   }
@@ -68,7 +72,11 @@ async function generate({ input, area, apiKey, model, baseUrl }) {
   const data = await response.json();
   const text = String(data?.choices?.[0]?.message?.content || '').trim();
   if (!text) {
-    throw new ProviderError('openai', 'OpenAI retornou resposta vazia.', 'Tente novamente ou ajuste o modelo.');
+    throw new ProviderError(
+      'openai',
+      'OpenAI retornou resposta vazia.',
+      'Tente novamente ou ajuste o modelo.'
+    );
   }
 
   return { text, usage: data?.usage || null, model: usedModel };

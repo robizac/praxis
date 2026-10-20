@@ -16,4 +16,8 @@ async function listRecent(limit = 100) {
   return auditRepo.listRecent(limit);
 }
 
-module.exports = { record, listRecent };
+async function listByUser(userId, limit = 1000) {
+  return auditRepo.listByUser(userId, limit);
+}
+
+module.exports = { record, listRecent, listByUser };

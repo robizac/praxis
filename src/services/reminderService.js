@@ -5,12 +5,7 @@ const praxisRepo = require('../repositories/praxis.repo');
 const settingsService = require('./settingsService');
 const usageService = require('./usageService');
 const logger = require('../lib/logger');
-const {
-  REMINDER_CHANNELS,
-  isValidChannel,
-  BadRequestError,
-  NotFoundError
-} = require('../domain');
+const { REMINDER_CHANNELS, isValidChannel, BadRequestError, NotFoundError } = require('../domain');
 
 const CHANNELS = REMINDER_CHANNELS;
 

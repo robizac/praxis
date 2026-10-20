@@ -120,9 +120,8 @@ async function register({ name, email: rawEmail, password: rawPassword, timezone
 async function login({ email: rawEmail, password: rawPassword, ip, userAgent }) {
   const emailAddr = normalizeEmail(rawEmail);
   const user = await usersRepo.findByEmail(emailAddr);
-  const valid = user && user.password_hash
-    ? await password.verify(rawPassword, user.password_hash)
-    : false;
+  const valid =
+    user && user.password_hash ? await password.verify(rawPassword, user.password_hash) : false;
 
   if (!valid) {
     await auditService.record({

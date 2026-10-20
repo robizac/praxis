@@ -36,9 +36,7 @@ router.post('/register', async (req, res, next) => {
     res.status(201).json({
       user: result.user,
       expiresAt: result.session.expiresAt,
-      ...(result.devVerificationToken
-        ? { devVerificationToken: result.devVerificationToken }
-        : {})
+      ...(result.devVerificationToken ? { devVerificationToken: result.devVerificationToken } : {})
     });
   } catch (error) {
     next(error);

@@ -125,16 +125,16 @@ Regra de ouro: **rota não fala SQL; serviço não fala `req`/`res`; domínio n�
 
 ## 3.5 Decisões de arquitetura (ADRs resumidos)
 
-| ADR | Decisão | Motivo | Alternativas |
-|-----|---------|--------|--------------|
-| 001 | Postgres gerenciado em produção | Concorrência, backup, multi-instância | Manter SQLite (limita) |
-| 002 | Monólito modular | Time pequeno, velocidade | Microsserviços (overkill) |
-| 003 | Sessão em cookie httpOnly + Argon2 | Simples e seguro | JWT stateless (revogação difícil) |
-| 004 | `user_id` em todas as tabelas | Multi-tenancy por linha | Schemas por usuário |
-| 005 | Worker separado para lembretes | Independe do web/scale | Cron in-process (atual) |
-| 006 | IA: gerenciado por cota + BYOK | Controle de custo + poder usuário | Só chave do dono (atual) |
-| 007 | Stripe Billing + entitlements internos | Fonte única de cobrança | Controle manual de plano |
-| 008 | Landing estática em `/`, app em `/app` | SEO + simplicidade | Sites separados |
+| ADR | Decisão                                | Motivo                                | Alternativas                      |
+| --- | -------------------------------------- | ------------------------------------- | --------------------------------- |
+| 001 | Postgres gerenciado em produção        | Concorrência, backup, multi-instância | Manter SQLite (limita)            |
+| 002 | Monólito modular                       | Time pequeno, velocidade              | Microsserviços (overkill)         |
+| 003 | Sessão em cookie httpOnly + Argon2     | Simples e seguro                      | JWT stateless (revogação difícil) |
+| 004 | `user_id` em todas as tabelas          | Multi-tenancy por linha               | Schemas por usuário               |
+| 005 | Worker separado para lembretes         | Independe do web/scale                | Cron in-process (atual)           |
+| 006 | IA: gerenciado por cota + BYOK         | Controle de custo + poder usuário     | Só chave do dono (atual)          |
+| 007 | Stripe Billing + entitlements internos | Fonte única de cobrança               | Controle manual de plano          |
+| 008 | Landing estática em `/`, app em `/app` | SEO + simplicidade                    | Sites separados                   |
 
 ## 3.6 Requisitos de infraestrutura
 

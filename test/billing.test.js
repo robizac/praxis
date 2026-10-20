@@ -32,7 +32,13 @@ async function deliver(event) {
   return billingService.handleWebhook(payload, sign(payload));
 }
 
-function subscriptionEvent({ userId, status, customerId, subscriptionId, cancelAtPeriodEnd = false }) {
+function subscriptionEvent({
+  userId,
+  status,
+  customerId,
+  subscriptionId,
+  cancelAtPeriodEnd = false
+}) {
   return {
     id: `evt_${randomUUID()}`,
     type: 'customer.subscription.updated',
@@ -66,7 +72,10 @@ function withStripeConfig() {
 test('billing: plano efetivo depende do status da assinatura', () => {
   assert.equal(billingService.effectivePlanId(null), 'free');
   assert.equal(billingService.effectivePlanId({ status: 'active', plan: 'pro' }), 'pro');
-  assert.equal(billingService.effectivePlanId({ status: 'trialing', plan: 'pro_annual' }), 'pro_annual');
+  assert.equal(
+    billingService.effectivePlanId({ status: 'trialing', plan: 'pro_annual' }),
+    'pro_annual'
+  );
   assert.equal(billingService.effectivePlanId({ status: 'past_due', plan: 'pro' }), 'free');
   assert.equal(billingService.effectivePlanId({ status: 'canceled', plan: 'pro' }), 'free');
 });
@@ -104,7 +113,12 @@ test('billing: webhook ativa o plano e é idempotente', { skip }, async () => {
   const restore = withStripeConfig();
   const customerId = `cus_${randomUUID()}`;
   const subscriptionId = `sub_${randomUUID()}`;
-  const event = subscriptionEvent({ userId: user.id, status: 'active', customerId, subscriptionId });
+  const event = subscriptionEvent({
+    userId: user.id,
+    status: 'active',
+    customerId,
+    subscriptionId
+  });
 
   try {
     assert.equal(await billingService.resolvePlanId(user.id), 'free');
@@ -135,14 +149,18 @@ test('billing: past_due rebaixa e deleted cancela', { skip }, async () => {
   const subscriptionId = `sub_${randomUUID()}`;
 
   try {
-    await deliver(subscriptionEvent({ userId: user.id, status: 'active', customerId, subscriptionId }));
+    await deliver(
+      subscriptionEvent({ userId: user.id, status: 'active', customerId, subscriptionId })
+    );
     assert.equal(await billingService.resolvePlanId(user.id), 'pro');
 
     // Falha de pagamento → past_due → sem acesso.
     await deliver({
       id: `evt_${randomUUID()}`,
       type: 'invoice.payment_failed',
-      data: { object: { id: `in_${randomUUID()}`, customer: customerId, subscription: subscriptionId } }
+      data: {
+        object: { id: `in_${randomUUID()}`, customer: customerId, subscription: subscriptionId }
+      }
     });
     assert.equal(await billingService.resolvePlanId(user.id), 'free');
     assert.equal((await billingService.getStatus(user.id)).status, 'past_due');

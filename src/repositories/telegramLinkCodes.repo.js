@@ -22,10 +22,10 @@ async function getActiveByUser(userId) {
 }
 
 async function markUsed(code) {
-  const result = await db.run('UPDATE telegram_link_codes SET used_at = ? WHERE code = ? AND used_at IS NULL', [
-    new Date().toISOString(),
-    code
-  ]);
+  const result = await db.run(
+    'UPDATE telegram_link_codes SET used_at = ? WHERE code = ? AND used_at IS NULL',
+    [new Date().toISOString(), code]
+  );
   return result.changes;
 }
 

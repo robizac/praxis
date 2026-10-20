@@ -3,6 +3,7 @@
 const { createApp } = require('./app');
 const { initDb } = require('../db');
 const { setupReminderScheduler } = require('../jobs/reminders.job');
+const { setupAlertScheduler } = require('../jobs/alerts.job');
 const { config, loadConfig } = require('../config/env');
 const { AREAS } = require('../domain');
 const logger = require('../lib/logger');
@@ -31,6 +32,7 @@ async function start() {
   }
 
   setupReminderScheduler();
+  setupAlertScheduler();
 
   const app = createApp();
 

@@ -3,7 +3,12 @@
 const path = require('path');
 const express = require('express');
 const { requestContext, httpLogger } = require('./middleware/observability');
-const { helmetMiddleware, corsMiddleware } = require('./middleware/security');
+const {
+  helmetMiddleware,
+  permissionsPolicyMiddleware,
+  corsMiddleware
+} = require('./middleware/security');
+const { httpMetrics } = require('./middleware/metrics');
 const { cookieParser } = require('./middleware/cookies');
 const { attachUser } = require('./middleware/auth');
 const { notFound, errorHandler } = require('./middleware/errorHandler');
@@ -20,8 +25,10 @@ function createApp() {
 
   app.disable('x-powered-by');
   app.use(helmetMiddleware);
+  app.use(permissionsPolicyMiddleware);
   app.use(corsMiddleware);
   app.use(requestContext);
+  app.use(httpMetrics);
   app.use(httpLogger);
   // Preserva o corpo bruto para verificação de assinatura do webhook da Stripe.
   app.use(
@@ -45,6 +52,11 @@ function createApp() {
 
   // API
   app.use('/api', apiRoutes);
+
+  // Páginas legais sem extensão (`/termos`, `/privacidade`, `/contato`).
+  for (const page of ['termos', 'privacidade', 'contato']) {
+    app.get(`/${page}`, (_req, res) => res.sendFile(path.join(LANDING_DIR, `${page}.html`)));
+  }
 
   // Landing page em `/`
   app.use(express.static(LANDING_DIR));

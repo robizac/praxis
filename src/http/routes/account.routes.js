@@ -9,7 +9,7 @@ const router = express.Router();
 /** Exporta os dados pessoais do usuário (LGPD — portabilidade). */
 router.get('/account/export', async (req, res, next) => {
   try {
-    const data = await accountService.exportData(req.user.id);
+    const data = await accountService.exportData(req.user.id, { ip: req.ip });
     res.setHeader('Content-Disposition', 'attachment; filename="praxis-dados.json"');
     res.json(data);
   } catch (error) {

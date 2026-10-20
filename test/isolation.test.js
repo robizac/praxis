@@ -99,7 +99,8 @@ test('lembretes são isolados por usuário', { skip }, async () => {
 
   // A não cria lembrete para item de B.
   await assert.rejects(
-    () => reminderService.create({ userId: a.id, praxisId: itemB, remindAtIso, channel: 'browser' }),
+    () =>
+      reminderService.create({ userId: a.id, praxisId: itemB, remindAtIso, channel: 'browser' }),
     /não encontrado/
   );
 });

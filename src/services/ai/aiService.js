@@ -8,6 +8,7 @@ const usageService = require('../usageService');
 const { decryptSecret } = require('../../integrations/crypto');
 const cache = require('./cache');
 const { estimateCostUsd } = require('./pricing');
+const metrics = require('../../lib/metrics');
 
 /**
  * Decide a rota da geração (docs/09, 9.2):
@@ -20,7 +21,11 @@ async function resolveRoute(userId) {
     return {
       source: usageService.BYOK,
       provider: cred.provider,
-      apiKey: decryptSecret({ ciphertext: cred.key_ciphertext, iv: cred.key_iv, tag: cred.key_tag }),
+      apiKey: decryptSecret({
+        ciphertext: cred.key_ciphertext,
+        iv: cred.key_iv,
+        tag: cred.key_tag
+      }),
       baseUrl: cred.base_url || undefined,
       model: cred.model || undefined
     };
@@ -29,7 +34,9 @@ async function resolveRoute(userId) {
   return {
     source: usageService.MANAGED,
     provider: config.ai.provider,
-    apiKey: (config.ai.managedKeys && config.ai.managedKeys[config.ai.provider]) || config.ai.managedOpenaiKey,
+    apiKey:
+      (config.ai.managedKeys && config.ai.managedKeys[config.ai.provider]) ||
+      config.ai.managedOpenaiKey,
     // Deixa cada adaptador usar o modelo padrão do seu provider
     // (openai → AI_DEFAULT_MODEL; ollama → OLLAMA_MODEL; anthropic/gemini → padrão do adaptador).
     model: undefined
@@ -84,7 +91,27 @@ async function generate({ userId, planId = 'free', input, area }) {
     costUsd
   });
 
-  const payload = { text: result.text, provider: route.provider, usage, source: route.source, model };
+  metrics.increment(
+    'ai_generations_total',
+    'Gerações de IA por provider e origem (gerenciado/BYOK).',
+    { provider: route.provider, source: route.source }
+  );
+  if (costUsd) {
+    metrics.increment(
+      'ai_cost_usd_total',
+      'Custo estimado acumulado de IA em USD.',
+      { provider: route.provider, source: route.source },
+      Number(costUsd)
+    );
+  }
+
+  const payload = {
+    text: result.text,
+    provider: route.provider,
+    usage,
+    source: route.source,
+    model
+  };
   cache.set(cacheKey, payload);
   return { ...payload, cached: false };
 }

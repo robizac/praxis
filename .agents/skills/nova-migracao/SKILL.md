@@ -11,9 +11,11 @@ Nunca edite uma migração já aplicada.
 ## Passos
 
 1. **Descubra o próximo número.** Liste os arquivos existentes:
+
    ```bash
    ls src/db/migrations/sqlite/ src/db/migrations/postgres/
    ```
+
    Use o próximo inteiro, com 3 dígitos e zero à esquerda (ex.: `009_`).
 
 2. **Crie o arquivo nos DOIS dialetos**, com o **mesmo prefixo numérico**:
@@ -28,6 +30,7 @@ Nunca edite uma migração já aplicada.
    - Novas colunas: `NOT NULL` exige `DEFAULT` (linhas existentes).
 
 4. **Aplique e valide a idempotência:**
+
    ```bash
    npm run migrate
    npm run migrate   # de novo: não pode mudar nada

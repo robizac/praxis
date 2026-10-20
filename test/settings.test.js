@@ -105,7 +105,11 @@ test('lembrete default: desativado ou prazo vencido não cria', { skip }, async 
 
   // Desativado (padrão).
   assert.equal(
-    await reminderService.createDefaultForItem({ userId: user.id, praxisId: itemId, prazoIso: future }),
+    await reminderService.createDefaultForItem({
+      userId: user.id,
+      praxisId: itemId,
+      prazoIso: future
+    }),
     null
   );
 
@@ -114,7 +118,11 @@ test('lembrete default: desativado ou prazo vencido não cria', { skip }, async 
   const past = new Date(Date.now() - 3600000).toISOString();
   const pastItem = await createItem(user.id, past);
   assert.equal(
-    await reminderService.createDefaultForItem({ userId: user.id, praxisId: pastItem, prazoIso: past }),
+    await reminderService.createDefaultForItem({
+      userId: user.id,
+      praxisId: pastItem,
+      prazoIso: past
+    }),
     null
   );
 });
@@ -130,7 +138,11 @@ test('lembrete default: respeita a cota sem lançar', { skip }, async () => {
   usageService.getRemindersUsage = async () => ({ canCreate: false, limit: 20, used: 20 });
   try {
     assert.equal(
-      await reminderService.createDefaultForItem({ userId: user.id, praxisId: itemId, prazoIso: future }),
+      await reminderService.createDefaultForItem({
+        userId: user.id,
+        praxisId: itemId,
+        prazoIso: future
+      }),
       null
     );
   } finally {
@@ -149,7 +161,12 @@ test('praxisService.generate cria o lembrete default', { skip }, async () => {
 
   const original = aiService.generate;
   // Sem JSON válido → buildSafeFallback define prazo futuro (+24h).
-  aiService.generate = async () => ({ text: 'sem-json', provider: 'test', source: 'managed', cached: false });
+  aiService.generate = async () => ({
+    text: 'sem-json',
+    provider: 'test',
+    source: 'managed',
+    cached: false
+  });
   try {
     const result = await praxisService.generate({
       userId: user.id,
@@ -257,14 +274,30 @@ test('API: GET/PUT /api/settings', { skip }, async () => {
 
     const initial = await client.get('/api/settings');
     assert.equal(initial.status, 200);
-    assert.deepEqual(initial.data.reminderDefault, { enabled: false, channel: 'browser', leadMinutes: 10 });
+    assert.deepEqual(initial.data.reminderDefault, {
+      enabled: false,
+      channel: 'browser',
+      leadMinutes: 10
+    });
 
-    const put = await client.put('/api/settings', { enabled: true, channel: 'email', leadMinutes: 15 });
+    const put = await client.put('/api/settings', {
+      enabled: true,
+      channel: 'email',
+      leadMinutes: 15
+    });
     assert.equal(put.status, 200);
-    assert.deepEqual(put.data.reminderDefault, { enabled: true, channel: 'email', leadMinutes: 15 });
+    assert.deepEqual(put.data.reminderDefault, {
+      enabled: true,
+      channel: 'email',
+      leadMinutes: 15
+    });
 
     const after = await client.get('/api/settings');
-    assert.deepEqual(after.data.reminderDefault, { enabled: true, channel: 'email', leadMinutes: 15 });
+    assert.deepEqual(after.data.reminderDefault, {
+      enabled: true,
+      channel: 'email',
+      leadMinutes: 15
+    });
 
     const invalid = await client.put('/api/settings', { channel: 'sms' });
     assert.equal(invalid.status, 400);

@@ -8,60 +8,60 @@ steps: 8
 permissions:
   # Regra ampla PRIMEIRO; exceções DEPOIS (a ÚLTIMA que casa vence).
   - action: edit
-    resource: "*"
+    resource: '*'
     effect: deny
 
   # Shell: negado por padrão, mas liberamos leitura do git — um revisor precisa
   # disso para enxergar o diff. Nada que escreva ou rode o projeto.
   - action: shell
-    resource: "*"
+    resource: '*'
     effect: deny
   - action: shell
-    resource: "git diff *"
+    resource: 'git diff *'
     effect: allow
   - action: shell
-    resource: "git log *"
+    resource: 'git log *'
     effect: allow
   - action: shell
-    resource: "git show *"
+    resource: 'git show *'
     effect: allow
   - action: shell
-    resource: "git status *"
+    resource: 'git status *'
     effect: allow
   - action: shell
-    resource: "git ls-files *"
+    resource: 'git ls-files *'
     effect: allow
   - action: shell
-    resource: "git check-ignore *"
+    resource: 'git check-ignore *'
     effect: allow
 
   # Leitura ampla, DEPOIS as exceções de segredo (senão o allow amplo vence).
   - action: read
-    resource: "*"
+    resource: '*'
     effect: allow
   - action: read
-    resource: "*.env"
+    resource: '*.env'
     effect: deny
   - action: read
-    resource: ".env"
+    resource: '.env'
     effect: deny
   - action: read
-    resource: ".env.*"
+    resource: '.env.*'
     effect: deny
 
   # Segredos que NÃO estão em .env: replicados aqui porque o `read "*" allow`
   # acima pode sobrepor as regras de leitura do projeto (opencode.jsonc). Sem
   # isto, o revisor conseguiria ler .data/.praxis-secrets.json.
   - action: read
-    resource: ".data/**"
+    resource: '.data/**'
     effect: deny
   - action: read
-    resource: "*.secrets.json"
+    resource: '*.secrets.json'
     effect: deny
 
   # Nunca chama a custom tool de migração (não faz parte de revisar).
   - action: praxis_check_migrations
-    resource: "*"
+    resource: '*'
     effect: deny
 ---
 
@@ -102,7 +102,7 @@ Liste os achados **em ordem de severidade**, cada um com:
 - **Por quê** é um problema, em 1–2 frases.
 - **Sugestão** concreta (sem aplicar).
 
-Termine com um veredito curto: *seguro para merge* ou *o que precisa mudar antes*.
+Termine com um veredito curto: _seguro para merge_ ou _o que precisa mudar antes_.
 
 ## Seja cético, mas honesto
 

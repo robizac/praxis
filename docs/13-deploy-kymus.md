@@ -38,11 +38,11 @@ Worker (mesma imagem, comando diferente):
 
 ## 13.3 Processos
 
-| Processo | Comando | Escala |
-|---|---|---|
-| Web/API | `node src/http/server.js` | 1+ (horizontal) |
-| Worker de lembretes | `node src/jobs/reminders.worker.js` | 1 (singleton) |
-| Migrações | `node scripts/migrate.js` (idempotente) | 1, no boot do web |
+| Processo            | Comando                                 | Escala            |
+| ------------------- | --------------------------------------- | ----------------- |
+| Web/API             | `node src/http/server.js`               | 1+ (horizontal)   |
+| Worker de lembretes | `node src/jobs/reminders.worker.js`     | 1 (singleton)     |
+| Migrações           | `node scripts/migrate.js` (idempotente) | 1, no boot do web |
 
 > Lembretes **não** podem depender de `node-cron` no processo web (quebra com
 > múltiplas instâncias/sleep). Ver F7.
@@ -83,6 +83,15 @@ BILLING_TRIAL_DAYS=7
 
 # Telegram (opcional / por usuário)
 TELEGRAM_BOT_TOKEN=...
+
+# Observabilidade, alertas e backups (Fase 8)
+ALERT_EMAIL=ops@praxis.exemplo.com
+ALERT_COOLDOWN_MINUTES=60
+ALERT_HTTP_5XX_THRESHOLD=10
+ALERT_AI_COST_RATIO=0.8
+METRICS_TOKEN=<32+ bytes aleatórios>   # /metrics exige Bearer token
+BACKUP_DIR=/var/backups/praxis
+BACKUP_RETENTION=7
 ```
 
 > Manter o `.env.example` do repositório em sincronia com esta lista.
@@ -98,8 +107,24 @@ TELEGRAM_BOT_TOKEN=...
 6. **Migrações**: aplicar no boot do web (ou passo de release).
 7. **Stripe**: registrar webhook `https://<dominio>/webhooks/stripe` para os eventos de 10.4; copiar `whsec_`.
 8. **Domínio**: apontar DNS; garantir TLS.
-9. **Monitor**: checar `/health` e `/ready`.
-10. **Smoke tests**: landing → cadastro → geração → assinatura → lembrete.
+9. **Monitor**: checar `/health` e `/ready`; raspar `/metrics` com `METRICS_TOKEN`.
+10. **Alertas**: configurar `ALERT_EMAIL` e testar um alerta real.
+11. **Backup**: agendar `npm run backup` (diário) e rodar `npm run backup:test-restore`.
+12. **Smoke tests**: landing → cadastro → geração → assinatura → lembrete.
+
+### Backup e restauração
+
+```bash
+# Diário (cron/Kymus). Requer pg_dump no host.
+npm run backup -- --out /var/backups/praxis --retention 7
+
+# Teste de restauração (trimestral) em banco descartável do Postgres
+npm run backup:test-restore -- --file /var/backups/praxis-....dump \
+  --target postgres://user:pass@host:5432/praxis_restore_test
+```
+
+Política: retenção de 7 dias, backup fora do host da aplicação, teste de
+restauração trimestral. Detalhes em [14](14-checklist-seguranca-lgpd.md#144-backup-e-restauração).
 
 ## 13.6 Checklist de go-live
 
@@ -109,14 +134,17 @@ TELEGRAM_BOT_TOKEN=...
 - [ ] Webhook Stripe validado (testar evento de teste).
 - [ ] E-mails transacionais chegando (verificação, reset, cobrança).
 - [ ] `/health` e `/ready` verdes e monitorados.
-- [ ] Backup do Postgres ativo.
-- [ ] Custo de IA com alerta (`AI_DAILY_BUDGET_USD`).
-- [ ] Termos/privacidade publicados; exclusão de conta funciona.
+- [ ] `/metrics` raspado com `METRICS_TOKEN`; alertas de 5xx/webhook/worker/IA ativos.
+- [ ] Backup do Postgres agendado e teste de restauração validado.
+- [ ] Custo de IA com alerta (`AI_DAILY_BUDGET_USD` + `ALERT_AI_COST_RATIO`).
+- [ ] Termos/privacidade/contato publicados; exportação e exclusão de conta funcionam.
+- [ ] Checklist de segurança e LGPD ([14](14-checklist-seguranca-lgpd.md)) completo.
 - [ ] Landing com Lighthouse >= 90.
 
 ## 13.7 Observações específicas do Kymus
 
 Como o painel não pôde ser inspecionado daqui, confirmar:
+
 - [ ] Aceita Dockerfile? (Se não, buildpack Node: definir start command.)
 - [ ] Oferece Postgres gerenciado? (Se não, usar provedor externo, ex.: Neon/Supabase.)
 - [ ] Suporta processo worker/segundo serviço? (Se não, cron externo.)

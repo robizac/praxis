@@ -174,6 +174,21 @@ test('export: reúne os dados do usuário (praxis-export-v1)', { skip }, async (
   });
 });
 
+test('export: inclui o log de auditoria e registra o acesso', { skip }, async () => {
+  await db.initDb();
+  await withServer(async (base) => {
+    const client = await new Client(base).init();
+    await register(client);
+
+    const res = await client.get('/api/account/export');
+    assert.equal(res.status, 200);
+    assert.ok(Array.isArray(res.data.auditLog));
+    assert.ok(res.data.auditLog.some((entry) => entry.action === 'account.exported'));
+    // O export não devolve o vínculo interno `user_id` do log.
+    assert.ok(res.data.auditLog.every((entry) => entry.user_id === undefined));
+  });
+});
+
 test('delete: exige a palavra de confirmação', { skip }, async () => {
   await db.initDb();
   await withServer(async (base) => {
@@ -203,18 +218,61 @@ test('delete: apaga todos os dados e a sessão', { skip }, async () => {
 
     // Usuário e dados relacionados removidos.
     assert.ok(!(await usersRepo.findById(user.id)));
-    const items = await db.get('SELECT COUNT(*) AS total FROM praxis_items WHERE user_id = ?', [user.id]);
+    const items = await db.get('SELECT COUNT(*) AS total FROM praxis_items WHERE user_id = ?', [
+      user.id
+    ]);
     assert.equal(Number(items.total), 0);
-    const reminders = await db.get('SELECT COUNT(*) AS total FROM reminders WHERE user_id = ?', [user.id]);
+    const reminders = await db.get('SELECT COUNT(*) AS total FROM reminders WHERE user_id = ?', [
+      user.id
+    ]);
     assert.equal(Number(reminders.total), 0);
-    const reviews = await db.get('SELECT COUNT(*) AS total FROM weekly_reviews WHERE user_id = ?', [user.id]);
+    const reviews = await db.get('SELECT COUNT(*) AS total FROM weekly_reviews WHERE user_id = ?', [
+      user.id
+    ]);
     assert.equal(Number(reviews.total), 0);
-    const usage = await db.get('SELECT COUNT(*) AS total FROM ai_usage WHERE user_id = ?', [user.id]);
+    const usage = await db.get('SELECT COUNT(*) AS total FROM ai_usage WHERE user_id = ?', [
+      user.id
+    ]);
     assert.equal(Number(usage.total), 0);
 
     // Sessão encerrada: export não autentica mais.
     const after = await client.get('/api/account/export');
     assert.equal(after.status, 401);
+  });
+});
+
+test('delete: registra o evento account.deleted sem PII', { skip }, async () => {
+  await db.initDb();
+  await withServer(async (base) => {
+    const client = await new Client(base).init();
+    const user = await register(client);
+
+    const before = await db.get('SELECT COUNT(*) AS total FROM audit_log WHERE action = ?', [
+      'account.deleted'
+    ]);
+
+    const res = await client.delete('/api/account', { confirm: 'EXCLUIR' });
+    assert.equal(res.status, 200);
+
+    const after = await db.get('SELECT COUNT(*) AS total FROM audit_log WHERE action = ?', [
+      'account.deleted'
+    ]);
+    assert.equal(Number(after.total), Number(before.total) + 1);
+
+    const rows = await db.all(
+      `SELECT user_id, entity_id, metadata FROM audit_log
+        WHERE action = ? AND metadata IS NOT NULL
+        ORDER BY created_at DESC LIMIT 1`,
+      ['account.deleted']
+    );
+    assert.equal(rows.length, 1);
+    assert.equal(rows[0].user_id, null);
+    assert.equal(rows[0].entity_id, null);
+
+    const metadata = JSON.parse(rows[0].metadata);
+    assert.equal(metadata.stripeCanceled, false);
+    assert.ok(metadata.counts.users >= 1);
+    assert.ok(!JSON.stringify(metadata).includes(user.id));
   });
 });
 
@@ -229,11 +287,22 @@ test('delete: anonimiza o log de auditoria', { skip }, async () => {
   await db.run(
     `INSERT INTO audit_log (id, user_id, action, entity, entity_id, metadata, ip, created_at)
      VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
-    [randomUUID(), user.id, action, null, null, JSON.stringify({ a: 1 }), '127.0.0.1', new Date().toISOString()]
+    [
+      randomUUID(),
+      user.id,
+      action,
+      null,
+      null,
+      JSON.stringify({ a: 1 }),
+      '127.0.0.1',
+      new Date().toISOString()
+    ]
   );
 
   await accountRepo.anonymizeAuditLog(user.id);
-  const rows = await db.all('SELECT user_id, ip, metadata FROM audit_log WHERE action = ?', [action]);
+  const rows = await db.all('SELECT user_id, ip, metadata FROM audit_log WHERE action = ?', [
+    action
+  ]);
   assert.equal(rows.length, 1);
   assert.equal(rows[0].user_id, null);
   assert.equal(rows[0].ip, null);

@@ -10,6 +10,7 @@ const accountRepo = require('../repositories/account.repo');
 const settingsService = require('./settingsService');
 const telegramService = require('./telegramService');
 const authService = require('./authService');
+const auditService = require('./auditService');
 const stripe = require('../integrations/stripe');
 const logger = require('../lib/logger');
 const { BadRequestError, NotFoundError } = require('../domain');
@@ -21,22 +22,39 @@ const CONFIRM_WORD = 'EXCLUIR';
  * Exporta todos os dados pessoais do usuário (LGPD — portabilidade).
  * Shape versionado (`praxis-export-v1`) para evolução futura.
  */
-async function exportData(userId) {
+async function exportData(userId, { ip } = {}) {
   const user = await usersRepo.findById(userId);
   if (!user) {
     throw new NotFoundError('Usuário não encontrado.');
   }
 
-  const [items, reminders, weeklyReviews, aiUsage, subscription, reminderDefault, telegram] =
-    await Promise.all([
-      praxisService.listHistory(userId, 5000),
-      remindersRepo.listByUser(userId),
-      reviewsRepo.list(userId, 5000),
-      aiUsageRepo.listByUser(userId),
-      subscriptionsRepo.getByUser(userId),
-      settingsService.getReminderSettings(userId),
-      telegramService.getStatus(userId)
-    ]);
+  await auditService.record({
+    userId,
+    action: 'account.exported',
+    entity: 'user',
+    entityId: userId,
+    ip
+  });
+
+  const [
+    items,
+    reminders,
+    weeklyReviews,
+    aiUsage,
+    subscription,
+    reminderDefault,
+    telegram,
+    auditLog
+  ] = await Promise.all([
+    praxisService.listHistory(userId, 5000),
+    remindersRepo.listByUser(userId),
+    reviewsRepo.list(userId, 5000),
+    aiUsageRepo.listByUser(userId),
+    subscriptionsRepo.getByUser(userId),
+    settingsService.getReminderSettings(userId),
+    telegramService.getStatus(userId),
+    auditService.listByUser(userId)
+  ]);
 
   return {
     format: 'praxis-export-v1',
@@ -48,7 +66,8 @@ async function exportData(userId) {
     items,
     reminders,
     weeklyReviews,
-    aiUsage
+    aiUsage,
+    auditLog
   };
 }
 
@@ -71,7 +90,11 @@ async function cancelStripeSubscription(subscription) {
  * explícita (`confirm: "EXCLUIR"`) para evitar exclusões acidentais.
  */
 async function deleteAccount(userId, { confirm } = {}) {
-  if (String(confirm || '').trim().toUpperCase() !== CONFIRM_WORD) {
+  if (
+    String(confirm || '')
+      .trim()
+      .toUpperCase() !== CONFIRM_WORD
+  ) {
     throw new BadRequestError(`Confirme a exclusão enviando confirm="${CONFIRM_WORD}".`);
   }
 
@@ -86,6 +109,14 @@ async function deleteAccount(userId, { confirm } = {}) {
   // Auditoria é anonimizada (mantida por segurança); demais dados são apagados.
   await accountRepo.anonymizeAuditLog(userId);
   const counts = await accountRepo.purgeUser(userId);
+
+  // Evento de exclusão sem PII: o vínculo com a pessoa já foi removido acima.
+  await auditService.record({
+    userId: null,
+    action: 'account.deleted',
+    entity: 'account',
+    metadata: { stripeCanceled, counts }
+  });
 
   logger.info({ userId, stripeCanceled, counts }, '[account] conta excluída');
   return { deleted: true, stripeCanceled, counts };

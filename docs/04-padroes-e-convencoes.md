@@ -18,7 +18,11 @@
 
 ```json
 {
-  "error": { "code": "quota_exceeded", "message": "Você atingiu o limite do plano.", "details": {} },
+  "error": {
+    "code": "quota_exceeded",
+    "message": "Você atingiu o limite do plano.",
+    "details": {}
+  },
   "requestId": "..."
 }
 ```
