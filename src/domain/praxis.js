@@ -52,16 +52,29 @@ function toIsoFromPtBr(text) {
   return localDate.toISOString();
 }
 
+function pad2(value) {
+  return String(value).padStart(2, '0');
+}
+
+/**
+ * Formata data no padrão pt-BR (`dd/mm/aaaa, hh:mm`).
+ *
+ * Não usa `toLocaleString('pt-BR')` de propósito: o resultado depende dos
+ * dados de locale do ICU e, em builds small-icu (Node sem locale data),
+ * sai em en-US ("12/25/2026, 20:00"). Isso quebra o round-trip com
+ * `toIsoFromPtBr` — o app deixa de conseguir reinterpretar a própria data —
+ * e mostra o prazo no formato americano para o usuário.
+ */
 function formatPtBr(dateLike) {
   const date = new Date(dateLike);
-  return date.toLocaleString('pt-BR', {
-    day: '2-digit',
-    month: '2-digit',
-    year: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit',
-    hour12: false
-  });
+  if (Number.isNaN(date.getTime())) {
+    return '';
+  }
+  const day = pad2(date.getDate());
+  const month = pad2(date.getMonth() + 1);
+  const hour = pad2(date.getHours());
+  const minute = pad2(date.getMinutes());
+  return `${day}/${month}/${date.getFullYear()}, ${hour}:${minute}`;
 }
 
 /** Normaliza a saída crua do modelo para o contrato PRAXIS. */

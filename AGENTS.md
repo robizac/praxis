@@ -109,7 +109,7 @@ Ver [`docs/04-padroes-e-convencoes.md`](docs/04-padroes-e-convencoes.md).
 
 ```bash
 npm i                  # instalar
-npm run dev            # desenvolvimento (nodemon)
+npm run dev            # desenvolvimento (node --watch)
 npm start              # produção
 npm test               # node --test (suíte completa)
 npm run lint           # oxlint (análise estática)
