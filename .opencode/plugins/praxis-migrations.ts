@@ -1,5 +1,6 @@
 import { Plugin } from "@opencode/plugin";
 import { execFile } from "node:child_process";
+import { existsSync } from "node:fs";
 import { mkdtemp, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
@@ -20,8 +21,11 @@ const execFileAsync = promisify(execFile);
 
 type MigrationResult = {
   ok: boolean;
+  /** Validação é sempre no dialeto SQLite (a tool força SQLite). */
+  dialect: "sqlite";
   applied: string[];
   total: number;
+  upToDate?: boolean;
   error?: string;
   stdout: string;
   stderr: string;
@@ -66,11 +70,38 @@ async function runMigrationsIsolated(projectDir: string): Promise<MigrationResul
           .filter(Boolean)
       : [];
 
-    return { ok: true, applied, total: applied.length, upToDate: alreadyUpToDate, stdout, stderr };
+    // Guarda de isolamento: o contrato é que `PRAXIS_DB_FILE` aponte as
+    // migrações para o banco temporário. Se o arquivo não foi criado, algo
+    // deixou de honrar o override (ex.: refactor em src/db/sqlite.js) e o
+    // script pode ter migrado o banco de dev — falhamos alto.
+    if (!existsSync(dbFile)) {
+      return {
+        ok: false,
+        dialect: "sqlite",
+        applied: [],
+        total: 0,
+        error:
+          "banco temporário não foi criado; PRAXIS_DB_FILE pode ter sido ignorado " +
+          "(verifique src/db/sqlite.js)",
+        stdout,
+        stderr,
+      };
+    }
+
+    return {
+      ok: true,
+      dialect: "sqlite",
+      applied,
+      total: applied.length,
+      upToDate: alreadyUpToDate,
+      stdout,
+      stderr,
+    };
   } catch (error) {
     const err = error as { stdout?: string; stderr?: string; message?: string };
     return {
       ok: false,
+      dialect: "sqlite",
       applied: [],
       total: 0,
       error: err.message ?? "falha ao rodar migrações",
@@ -91,10 +122,10 @@ export default Plugin.define({
       tools.add({
         name: "praxis_check_migrations",
         description:
-          "Roda as migrações do PRAXIS em um banco SQLite temporário e isolado " +
-          "(não toca no praxis.db de desenvolvimento). Retorna as migrações " +
-          "aplicadas e se o schema sobe sem erro. Use após alterar arquivos em " +
-          "src/db/migrations/.",
+          "Valida as migrações do PRAXIS num banco SQLite TEMPORÁRIO e isolado " +
+          "(não toca no praxis.db de desenvolvimento). ATENÇÃO: valida só o dialeto " +
+          "SQLite, não o Postgres. Retorna as migrações aplicadas e se o schema " +
+          "sobe sem erro. Use após alterar arquivos em src/db/migrations/.",
         input: {
           type: "object",
           properties: {},
