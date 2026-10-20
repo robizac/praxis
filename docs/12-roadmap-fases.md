@@ -295,12 +295,12 @@ Dependências: F5, F6, F7.
 
 Tarefas:
 
-- [ ] Provisionar Postgres; configurar secrets.
-- [ ] Deploy web + worker; migrações no boot.
-- [ ] Configurar webhook Stripe para a URL de produção.
-- [ ] Domínio, TLS, `/health` e `/ready` no monitor.
-- [ ] Smoke tests do funil (landing → cadastro → geração → assinatura).
-- [ ] Pós-lançamento: monitorar custo de IA, erros e conversão.
+- [ ] Provisionar Postgres; configurar secrets. _(externo — painel Kymus)_
+- [ ] Deploy web + worker; migrações no boot. _(código pronto: Dockerfile aplica `scripts/migrate.js` no boot; docker-compose com serviço `worker`; falta o deploy real no host)_
+- [ ] Configurar webhook Stripe para a URL de produção. _(externo — dashboard Stripe)_
+- [ ] Domínio, TLS, `/health` e `/ready` no monitor. _(externo — DNS/monitor)_
+- [x] Smoke tests do funil (landing → cadastro → geração → assinatura). _(script `npm run smoke`, ver docs/13 §13.5 passo 12; suíte `test/smoke.test.js`)_
+- [ ] Pós-lançamento: monitorar custo de IA, erros e conversão. _(contínuo — `/metrics` + alertas já implementados)_
 
 Aceite: funil completo em produção; monitoramento verde.
 Dependências: F8.

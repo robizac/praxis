@@ -12,6 +12,7 @@
     "worker": "node src/jobs/reminders.worker.js",
     "backup": "node scripts/backup.js",
     "backup:test-restore": "node scripts/backup-restore.js",
+    "smoke": "node scripts/smoke.js",
     "test": "node --test",
     "test:coverage": "node --test --experimental-test-coverage --test-coverage-lines=75 --test-coverage-branches=65 --test-coverage-functions=75",
     "lint": "oxlint",
