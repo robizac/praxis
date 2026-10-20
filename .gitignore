@@ -5,3 +5,4 @@ praxis.db-*
 npm-debug.log*
 .data/
 .opencode/node_modules/
+logs/
