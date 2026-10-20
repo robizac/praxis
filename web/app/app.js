@@ -829,6 +829,50 @@ function readHash() {
   return location.hash.replace('#/', '');
 }
 
+/**
+ * Aba de autenticação inicial a partir da URL.
+ * `/cadastro` (ou `?tab=register`) abre "Criar conta"; `/entrar` abre "Entrar".
+ * Sem correspondência, devolve null e o app usa o padrão ("Entrar").
+ */
+function authViewFromUrl() {
+  const path = window.location.pathname.replace(/\/+$/, '');
+  const tab = String(new URLSearchParams(window.location.search).get('tab') || '').toLowerCase();
+
+  if (tab === 'register' || tab === 'cadastro') {
+    return 'register';
+  }
+  if (tab === 'login' || tab === 'entrar') {
+    return 'login';
+  }
+  if (path.endsWith('/cadastro')) {
+    return 'register';
+  }
+  if (path.endsWith('/entrar')) {
+    return 'login';
+  }
+  return null;
+}
+
+/** Plano pedido pela landing (`?plan=pro` / `?plan=pro_annual`). */
+function requestedPlan() {
+  const plan = String(new URLSearchParams(window.location.search).get('plan') || '').toLowerCase();
+  return plan === 'pro' || plan === 'pro_annual' ? plan : null;
+}
+
+/**
+ * Inicia o checkout do plano pedido pela landing (`?plan=...`) assim que a
+ * sessão existe. Limpa a query para o checkout não repetir ao recarregar.
+ */
+async function maybeStartRequestedCheckout() {
+  const plan = requestedPlan();
+  if (!plan) {
+    return;
+  }
+  window.history.replaceState({}, '', window.location.pathname + window.location.hash);
+  window.location.hash = '#/account';
+  await startCheckout(plan);
+}
+
 function queryFromHash(hash) {
   const index = hash.indexOf('?');
   return new URLSearchParams(index === -1 ? '' : hash.slice(index + 1));
@@ -862,6 +906,7 @@ async function doLogin() {
   authUi.loginPassword.value = '';
   showApp(data.user);
   await refreshData();
+  await maybeStartRequestedCheckout();
 }
 
 async function doRegister() {
@@ -878,6 +923,7 @@ async function doRegister() {
   authUi.regPassword.value = '';
   showApp(data.user);
   await refreshData();
+  await maybeStartRequestedCheckout();
 }
 
 async function doForgot() {
@@ -951,6 +997,7 @@ async function bootstrap() {
     showApp(data.user);
     await refreshData();
     handleBillingReturn();
+    await maybeStartRequestedCheckout();
     return;
   }
 
@@ -958,7 +1005,7 @@ async function bootstrap() {
     return;
   }
 
-  showAuth('login');
+  showAuth(authViewFromUrl() || 'login');
 }
 
 function handleBillingReturn() {
