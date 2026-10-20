@@ -46,7 +46,7 @@ async function exportData(userId, { ip } = {}) {
     telegram,
     auditLog
   ] = await Promise.all([
-    praxisService.listHistory(userId, 5000),
+    praxisService.listHistory(userId, { pageSize: 5000 }).then((r) => r.items),
     remindersRepo.listByUser(userId),
     reviewsRepo.list(userId, 5000),
     aiUsageRepo.listByUser(userId),

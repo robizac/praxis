@@ -7,14 +7,15 @@ function nowIso() {
   return new Date().toISOString();
 }
 
-async function create({ email, passwordHash, name, timezone }) {
+async function create({ email, passwordHash, name, timezone, termsAcceptedAt }) {
   const id = randomUUID();
   const now = nowIso();
+  const accepted = termsAcceptedAt || null;
   await db.run(
     `INSERT INTO users
-      (id, email, password_hash, name, role, email_verified_at, timezone, status, created_at, updated_at)
-     VALUES (?, ?, ?, ?, 'user', NULL, ?, 'active', ?, ?)`,
-    [id, email, passwordHash, name, timezone || 'America/Sao_Paulo', now, now]
+      (id, email, password_hash, name, role, email_verified_at, timezone, status, created_at, updated_at, terms_accepted_at)
+     VALUES (?, ?, ?, ?, 'user', NULL, ?, 'active', ?, ?, ?)`,
+    [id, email, passwordHash, name, timezone || 'America/Sao_Paulo', now, now, accepted]
   );
   return findById(id);
 }

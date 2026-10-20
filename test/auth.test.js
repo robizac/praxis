@@ -113,7 +113,8 @@ test('auth: cadastro cria usuário, sessão e retorna /me', { skip }, async () =
     const register = await client.post('/api/auth/register', {
       name: 'Maria Teste',
       email,
-      password: 'senha12345'
+      password: 'senha12345',
+      acceptedTerms: true
     });
 
     assert.equal(register.status, 201);
@@ -137,7 +138,8 @@ test('auth: cadastro com e-mail duplicado retorna 409', { skip }, async () => {
     const created = await first.post('/api/auth/register', {
       name: 'Primeiro',
       email,
-      password: 'senha12345'
+      password: 'senha12345',
+      acceptedTerms: true
     });
     assert.equal(created.status, 201);
 
@@ -145,7 +147,8 @@ test('auth: cadastro com e-mail duplicado retorna 409', { skip }, async () => {
     const duplicate = await second.post('/api/auth/register', {
       name: 'Segundo',
       email,
-      password: 'senha12345'
+      password: 'senha12345',
+      acceptedTerms: true
     });
     assert.equal(duplicate.status, 409);
     assert.equal(duplicate.data.error.code, 'email_taken');
@@ -165,14 +168,23 @@ test('auth: login válido e inválido', { skip }, async () => {
   await withServer(async (base) => {
     const email = uniqueEmail();
     const owner = await new Client(base).init();
-    await owner.post('/api/auth/register', { name: 'Login', email, password: 'senha12345' });
+    await owner.post('/api/auth/register', {
+      name: 'Login',
+      email,
+      password: 'senha12345',
+      acceptedTerms: true
+    });
 
     const wrong = await new Client(base).init();
     const wrongResponse = await wrong.post('/api/auth/login', { email, password: 'senha-errada' });
     assert.equal(wrongResponse.status, 401);
 
     const right = await new Client(base).init();
-    const rightResponse = await right.post('/api/auth/login', { email, password: 'senha12345' });
+    const rightResponse = await right.post('/api/auth/login', {
+      email,
+      password: 'senha12345',
+      acceptedTerms: true
+    });
     assert.equal(rightResponse.status, 200);
     assert.equal(rightResponse.data.user.email, email);
     assert.ok(right.cookies.praxis_session);
@@ -185,7 +197,8 @@ test('auth: logout revoga a sessão', { skip }, async () => {
     await client.post('/api/auth/register', {
       name: 'Logout',
       email: uniqueEmail(),
-      password: 'senha12345'
+      password: 'senha12345',
+      acceptedTerms: true
     });
 
     const before = await client.get('/api/auth/me');
@@ -204,7 +217,12 @@ test('auth: requisição mutante sem CSRF é rejeitada', { skip }, async () => {
     const response = await fetch(`${base}/api/auth/register`, {
       method: 'POST',
       headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({ name: 'Sem CSRF', email: uniqueEmail(), password: 'senha12345' })
+      body: JSON.stringify({
+        name: 'Sem CSRF',
+        email: uniqueEmail(),
+        password: 'senha12345',
+        acceptedTerms: true
+      })
     });
     assert.equal(response.status, 403);
     const data = await response.json();
@@ -219,7 +237,8 @@ test('auth: redefinição de senha revoga sessões existentes', { skip }, async 
     const register = await client.post('/api/auth/register', {
       name: 'Reset',
       email,
-      password: 'senha-antiga1'
+      password: 'senha-antiga1',
+      acceptedTerms: true
     });
     const resetToken = register.data.devVerificationToken; // token de verificação (dev)
     assert.ok(resetToken, 'token de dev deve ser retornado em ambiente não-produtivo');
@@ -252,7 +271,8 @@ test('auth: verificação de e-mail marca a conta', { skip }, async () => {
     const register = await client.post('/api/auth/register', {
       name: 'Verifica',
       email: uniqueEmail(),
-      password: 'senha12345'
+      password: 'senha12345',
+      acceptedTerms: true
     });
     const token = register.data.devVerificationToken;
     assert.ok(token);

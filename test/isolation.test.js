@@ -38,7 +38,7 @@ test('itens de praxis são isolados por usuário', { skip }, async () => {
   const itemA = await insertItem(a.id, 'item do A');
   const itemB = await insertItem(b.id, 'item do B');
 
-  const listA = await praxisService.listHistory(a.id, 100);
+  const listA = (await praxisService.listHistory(a.id, { pageSize: 100 })).items;
   assert.ok(listA.some((item) => item.id === itemA));
   assert.ok(!listA.some((item) => item.id === itemB), 'A não deve ver o item de B');
 

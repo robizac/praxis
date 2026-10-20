@@ -33,4 +33,12 @@ router.get('/meta', async (req, res, next) => {
   }
 });
 
+router.get('/summary', async (req, res, next) => {
+  try {
+    res.json(await praxisService.summary(req.user.id));
+  } catch (error) {
+    next(error);
+  }
+});
+
 module.exports = router;

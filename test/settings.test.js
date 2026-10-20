@@ -268,7 +268,8 @@ test('API: GET/PUT /api/settings', { skip }, async () => {
     const register = await client.post('/api/auth/register', {
       name: 'Config',
       email: `set-http-${randomUUID()}@example.com`,
-      password: 'SenhaForte123'
+      password: 'SenhaForte123',
+      acceptedTerms: true
     });
     assert.equal(register.status, 201);
 

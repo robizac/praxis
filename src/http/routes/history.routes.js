@@ -6,6 +6,22 @@ const { BadRequestError, NotFoundError } = require('../../domain');
 
 const router = express.Router();
 
+router.get('/history/export', async (req, res, next) => {
+  try {
+    const format = String(req.query.format || 'csv').toLowerCase();
+    if (format !== 'csv' && format !== 'md' && format !== 'markdown') {
+      throw new BadRequestError('format deve ser csv ou md.');
+    }
+    const normalized = format === 'markdown' ? 'md' : format;
+    const result = await praxisService.exportHistory(req.user.id, normalized);
+    res.setHeader('Content-Type', result.contentType);
+    res.setHeader('Content-Disposition', `attachment; filename="${result.filename}"`);
+    res.send(result.body);
+  } catch (error) {
+    next(error);
+  }
+});
+
 function parseId(value) {
   const id = Number(value);
   if (!Number.isInteger(id)) {
@@ -16,7 +32,15 @@ function parseId(value) {
 
 router.get('/history', async (req, res, next) => {
   try {
-    res.json(await praxisService.listHistory(req.user.id, 100));
+    const result = await praxisService.listHistory(req.user.id, {
+      area: req.query.area,
+      status: req.query.status,
+      q: req.query.q || req.query.query,
+      sort: req.query.sort,
+      page: req.query.page,
+      pageSize: req.query.pageSize || req.query.limit
+    });
+    res.json(result);
   } catch (error) {
     next(error);
   }
