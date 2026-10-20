@@ -220,6 +220,27 @@ async function runSmoke(options = {}) {
       if (res.status !== 200) throw new Error(`status ${res.status}`);
     });
 
+    // 2b. Rotas de entrada da landing (/entrar, /cadastro).
+    // Regressão: um 404 aqui derrubava todos os CTAs de "Começar grátis".
+    await step('landing: GET /entrar e /cadastro', async () => {
+      for (const rota of ['/entrar', '/cadastro']) {
+        const res = await fetch(`${opts.baseUrl}${rota}`, { method: 'GET' });
+        if (res.status !== 200) throw new Error(`${rota} -> status ${res.status}`);
+        const html = await res.text();
+        if (!/screen-auth/.test(html)) throw new Error(`${rota} não serviu a SPA`);
+      }
+    });
+
+    // 2c. Todo link público da landing precisa responder (nenhum 404).
+    await step('landing: nenhum link público em 404', async () => {
+      const html = await (await fetch(`${opts.baseUrl}/`, { method: 'GET' })).text();
+      const links = [...new Set([...html.matchAll(/href="(\/[^"#?]*)"/g)].map((m) => m[1]))];
+      for (const link of links) {
+        const res = await fetch(`${opts.baseUrl}${link}`, { method: 'GET' });
+        if (res.status !== 200) throw new Error(`${link} -> status ${res.status}`);
+      }
+    });
+
     // 3. Health
     await step('health: GET /health', async () => {
       const res = await request('GET', '/health');

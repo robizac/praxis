@@ -228,6 +228,17 @@ function validate() {
     if (!config.databaseUrl) {
       warnings.push('DATABASE_URL não definida — usando SQLite local mesmo em produção.');
     }
+    // APP_URL monta os links de verificação de e-mail, redefinição de senha, o
+    // return_url do Stripe, o CORS e o sitemap. Se apontar para localhost em
+    // produção, tudo isso quebra silenciosamente (o e-mail chega com link
+    // http://localhost:3000 e o usuário nunca confirma o e-mail).
+    if (!/^https:\/\//i.test(config.appUrl) || /localhost|127\.0\.0\.1/i.test(config.appUrl)) {
+      warnings.push(
+        `APP_URL="${config.appUrl}" não é uma URL pública de produção. Links de ` +
+          'verificação de e-mail, redefinição de senha, retorno do Stripe, CORS e sitemap ' +
+          'ficam quebrados. Defina APP_URL=https://<dominio-publico>.'
+      );
+    }
     if (!config.ai.managedOpenaiKey && config.ai.provider === 'openai') {
       warnings.push(
         'Nenhuma chave de IA gerenciada configurada (MANAGED_OPENAI_API_KEY/OPENAI_API_KEY).'
