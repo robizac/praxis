@@ -1,0 +1,8 @@
+# Não formatar artefatos gerados, dependências e dados.
+node_modules
+package-lock.json
+.data
+praxis.db
+praxis.db-*
+.opencode/bun.lock
+.opencode/node_modules
