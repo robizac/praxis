@@ -478,67 +478,38 @@ textarea {
     grid-template-columns: 1fr;
   }
 
+  .app.is-logged .sidebar {
+    grid-column: 1;
+    grid-row: auto;
+  }
+
+  .app.is-logged .content {
+    grid-column: 1;
+  }
+
   .sidebar {
     position: static;
-    height: auto;
-    flex-direction: row;
-    flex-wrap: wrap;
-    align-items: center;
-    justify-content: space-between;
-    border-right: none;
-    border-bottom: 1px solid var(--sidebar-border);
-  }
-
-  .nav {
-    flex-direction: row;
-    flex-wrap: wrap;
-  }
-
-  .nav-section {
-    flex-direction: row;
-    flex-wrap: wrap;
-    align-items: center;
-  }
-
-  .nav-label {
-    display: none;
-  }
-
-  .user-box {
-    margin-top: 0;
-  }
-
-  .content {
-    padding: clamp(16px, 4vw, 28px);
-  }
-}
-
-@media (max-width: 1080px) {
-  .sidebar {
-    position: sticky;
-    top: 0;
+    top: auto;
     height: auto;
     flex-direction: row;
     flex-wrap: wrap;
     align-items: center;
     justify-content: flex-start;
+    gap: 10px;
+    padding: 12px 16px;
     border-right: none;
     border-bottom: 1px solid var(--sidebar-border);
-    padding: 10px 14px;
-    gap: 10px;
-    z-index: 20;
+  }
+
+  .sidebar-header {
+    padding: 0;
   }
 
   .nav {
     flex-direction: row;
     flex-wrap: wrap;
     gap: 4px;
-    padding: 2px;
-  }
-
-  .nav a {
-    padding: 6px 10px;
-    font-size: 0.95rem;
+    padding: 0;
   }
 
   .nav-section {
@@ -552,32 +523,27 @@ textarea {
     display: none;
   }
 
+  .nav a {
+    padding: 6px 12px;
+    font-size: 0.95rem;
+  }
+
   .user-box {
     margin-top: 0;
-    padding: 6px 10px;
     margin-left: auto;
+    padding: 6px 10px;
   }
 
   .content {
-    padding: clamp(14px, 4vw, 24px);
-  }
-
-  .app {
-    display: flex;
-    flex-direction: column;
+    padding: clamp(16px, 4vw, 28px);
   }
 
   .screen {
     width: 100%;
     max-width: 100%;
-    overflow-x: hidden;
   }
 
-  .card {
-    width: 100%;
-    min-width: 0;
-  }
-
+  .card,
   .cards,
   .row,
   .controls,
@@ -586,7 +552,6 @@ textarea {
   .steps {
     width: 100%;
     min-width: 0;
-    grid-template-columns: 1fr;
   }
 
   input,
@@ -597,23 +562,34 @@ textarea {
 }
 
 @media (max-width: 720px) {
-  .nav {
-    order: 3;
-    width: 100%;
-    overflow-x: auto;
-    flex-wrap: nowrap;
-  }
-
-  .nav a {
-    white-space: nowrap;
-  }
-
-  .user-box {
-    order: 2;
-    margin-left: auto;
+  .sidebar {
+    align-items: center;
+    gap: 8px;
   }
 
   .sidebar-header {
     order: 1;
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+  }
+
+  .nav {
+    order: 2;
+    width: 100%;
+    overflow-x: auto;
+    flex-wrap: nowrap;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .user-box {
+    order: 3;
+    width: 100%;
+    margin-left: 0;
+    justify-content: space-between;
+  }
+
+  .nav a {
+    white-space: nowrap;
   }
 }
