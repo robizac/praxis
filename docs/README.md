@@ -1,11 +1,7 @@
-# PRAXIS — Documentação de Produto e Engenharia
+# Documentação
 
-Esta pasta é a fonte da verdade para evoluir o PRAXIS de um MVP local para um
-produto SaaS multi-usuário, com controle de acesso, banco de dados gerenciado,
-IA com custo controlado, landing page e pagamento via Stripe.
-
-> Status: **Fases 1–8 concluídas** ✅. Próxima fase: lançamento (9) conforme o
-> [roadmap](12-roadmap-fases.md).
+A documentação oficial fica neste diretório numerada (`01-*.md` a `14-*.md`).
+Veja o [README principal](/README.md) para como rodar e validar o projeto.
 
 ## Índice
 
@@ -26,16 +22,8 @@ IA com custo controlado, landing page e pagamento via Stripe.
 | 13  | [Deploy no Kymus](13-deploy-kymus.md)                             | Build, Docker, variáveis, jobs, checklist                    |
 | 14  | [Segurança, LGPD e operação](14-checklist-seguranca-lgpd.md)      | OWASP, direitos do titular, métricas/alertas, backup/restore |
 
-Documentos de apoio na raiz:
+## Apoio
 
-- [`/README.md`](../README.md) — como rodar hoje (dev).
-- [`/AGENTS.md`](../AGENTS.md) — guia de arquitetura/padrões para agentes de IA.
-- [`/.env.example`](../.env.example) — todas as variáveis de ambiente (atual e planejadas).
-
-## Decisões que precisam de aprovação
-
-1. **Banco de produção**: Postgres gerenciado (recomendado) vs. manter SQLite.
-2. **Autenticação**: e-mail + senha (recomendado) e/ou Google OAuth / magic link.
-3. **Preço e limites dos planos** (ver [09](09-ia-e-custos.md) e [10](10-pagamentos-stripe.md)).
-4. **Estratégia de IA**: BYOK + cota gerenciada no plano pago (recomendado).
-5. **Domínio/rotas**: landing em `/` e app em `/app` no mesmo host (recomendado).
+- [`guia-opencode.md`](guia-opencode.md) — guia prático OpenCode/agents/skills/tools/plugins.
+- [`history/`](history/) — relatórios e análises históricas (arquivo).
+- [`specs/`](specs/) — especificações de evolução por feature (requisitos/design/tarefas).
