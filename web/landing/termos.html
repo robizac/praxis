@@ -9,6 +9,19 @@
       content="Termos de Uso do PRAXIS: conta, planos, cancelamento, uso aceitável e responsabilidades."
     />
     <link rel="stylesheet" href="legal.css" />
+    <script>
+      (function () {
+        try {
+          const stored = localStorage.getItem('praxis-theme');
+          const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+          const theme =
+            stored === 'dark' || stored === 'light' ? stored : prefersDark ? 'dark' : 'light';
+          document.documentElement.dataset.theme = theme;
+        } catch (e) {
+          document.documentElement.dataset.theme = 'light';
+        }
+      })();
+    </script>
   </head>
   <body>
     <h1>Termos de Uso</h1>

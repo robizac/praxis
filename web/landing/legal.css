@@ -1,9 +1,21 @@
 :root {
+  color-scheme: light;
   --fg: #1d1d1d;
   --bg: #f9f9f9;
   --muted: #555;
   --border: #e6e6e6;
   --accent: #272727;
+  --surface: #ffffff;
+}
+
+[data-theme='dark'] {
+  color-scheme: dark;
+  --fg: #f2f2f5;
+  --bg: #0b0b10;
+  --muted: #a9a9b9;
+  --border: rgba(245, 245, 255, 0.12);
+  --accent: #f2f2f5;
+  --surface: #16161e;
 }
 
 * {
@@ -38,7 +50,7 @@ h2 {
 .card {
   border: 1px solid var(--border);
   border-radius: 14px;
-  background: #fff;
+  background: var(--surface);
   padding: 1rem 1.2rem;
   margin: 1.2rem 0;
 }

@@ -1,6 +1,7 @@
 :root {
   color-scheme: light;
   --fg: #0f1026;
+  --bg-color: #f6f6fa;
   --bg:
     radial-gradient(
       circle at 50% -10%,
@@ -26,6 +27,7 @@
 [data-theme='dark'] {
   color-scheme: dark;
   --fg: #f5f5ff;
+  --bg-color: #08080c;
   --bg:
     radial-gradient(
       circle at 50% -10%,
@@ -55,6 +57,7 @@
 html {
   scroll-behavior: smooth;
   scroll-padding-top: 96px;
+  background-color: var(--bg-color);
 }
 
 body {
@@ -103,7 +106,7 @@ header {
   backdrop-filter: blur(18px) saturate(120%);
   background: linear-gradient(
     180deg,
-    color-mix(in srgb, var(--bg) 92%, transparent) 0%,
+    color-mix(in srgb, var(--bg-color) 92%, transparent) 0%,
     transparent 100%
   );
 }

@@ -6,6 +6,19 @@
     <title>Contato — PRAXIS</title>
     <meta name="description" content="Canais de contato e suporte do PRAXIS." />
     <link rel="stylesheet" href="legal.css" />
+    <script>
+      (function () {
+        try {
+          const stored = localStorage.getItem('praxis-theme');
+          const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+          const theme =
+            stored === 'dark' || stored === 'light' ? stored : prefersDark ? 'dark' : 'light';
+          document.documentElement.dataset.theme = theme;
+        } catch (e) {
+          document.documentElement.dataset.theme = 'light';
+        }
+      })();
+    </script>
   </head>
   <body>
     <h1>Contato</h1>
