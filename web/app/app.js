@@ -794,6 +794,8 @@ function showAuth(view = 'login') {
   authUi.shell.hidden = true;
   Object.values(screens).forEach((node) => node.classList.remove('active'));
   authUi.screen.classList.add('active');
+  const appRoot = document.querySelector('.app');
+  if (appRoot) appRoot.classList.remove('is-logged');
 
   authUi.loginForm.hidden = view !== 'login';
   authUi.registerForm.hidden = view !== 'register';
@@ -812,6 +814,8 @@ function showApp(user) {
   authUi.userEmail.textContent = user?.email || '';
   const adminLink = document.querySelector('[data-nav="admin"]');
   if (adminLink) adminLink.hidden = user?.role !== 'admin';
+  const appRoot = document.querySelector('.app');
+  if (appRoot) appRoot.classList.add('is-logged');
   if (!location.hash) {
     location.hash = '#/home';
   }
