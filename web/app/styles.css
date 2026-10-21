@@ -97,6 +97,7 @@ body::after {
   grid-template-columns: 280px minmax(0, 1fr);
   min-height: 100dvh;
   gap: 0;
+  align-items: start;
 }
 
 .topbar {
@@ -495,5 +496,110 @@ textarea {
 
   .content {
     padding: clamp(16px, 4vw, 28px);
+  }
+}
+
+@media (max-width: 1080px) {
+  .sidebar {
+    position: sticky;
+    top: 0;
+    height: auto;
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: flex-start;
+    border-right: none;
+    border-bottom: 1px solid var(--sidebar-border);
+    padding: 10px 14px;
+    gap: 10px;
+    z-index: 20;
+  }
+
+  .nav {
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 4px;
+    padding: 2px;
+  }
+
+  .nav a {
+    padding: 6px 10px;
+    font-size: 0.95rem;
+  }
+
+  .nav-section {
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 4px;
+  }
+
+  .nav-label {
+    display: none;
+  }
+
+  .user-box {
+    margin-top: 0;
+    padding: 6px 10px;
+    margin-left: auto;
+  }
+
+  .content {
+    padding: clamp(14px, 4vw, 24px);
+  }
+
+  .app {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .screen {
+    width: 100%;
+    max-width: 100%;
+    overflow-x: hidden;
+  }
+
+  .card {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .cards,
+  .row,
+  .controls,
+  .pricing,
+  .card-grid,
+  .steps {
+    width: 100%;
+    min-width: 0;
+    grid-template-columns: 1fr;
+  }
+
+  input,
+  select,
+  textarea {
+    max-width: 100%;
+  }
+}
+
+@media (max-width: 720px) {
+  .nav {
+    order: 3;
+    width: 100%;
+    overflow-x: auto;
+    flex-wrap: nowrap;
+  }
+
+  .nav a {
+    white-space: nowrap;
+  }
+
+  .user-box {
+    order: 2;
+    margin-left: auto;
+  }
+
+  .sidebar-header {
+    order: 1;
   }
 }
