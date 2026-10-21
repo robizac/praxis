@@ -98,18 +98,19 @@ body::after {
   min-height: 100dvh;
 }
 
-.app.is-logged {
+#appShell {
   display: grid;
   grid-template-columns: 280px minmax(0, 1fr);
   align-items: start;
+  min-height: 100dvh;
 }
 
-.app.is-logged .sidebar {
+#appShell > .sidebar {
   grid-column: 1;
   grid-row: 1 / -1;
 }
 
-.app.is-logged .content {
+#appShell > .content {
   grid-column: 2;
   min-width: 0;
 }
@@ -474,16 +475,16 @@ textarea {
 }
 
 @media (max-width: 1080px) {
-  .app.is-logged {
+  #appShell {
     grid-template-columns: 1fr;
   }
 
-  .app.is-logged .sidebar {
+  #appShell > .sidebar {
     grid-column: 1;
     grid-row: auto;
   }
 
-  .app.is-logged .content {
+  #appShell > .content {
     grid-column: 1;
   }
 
