@@ -93,11 +93,25 @@ body::after {
 }
 
 .app {
+  display: flex;
+  flex-direction: column;
+  min-height: 100dvh;
+}
+
+.app.is-logged {
   display: grid;
   grid-template-columns: 280px minmax(0, 1fr);
-  min-height: 100dvh;
-  gap: 0;
   align-items: start;
+}
+
+.app.is-logged .sidebar {
+  grid-column: 1;
+  grid-row: 1 / -1;
+}
+
+.app.is-logged .content {
+  grid-column: 2;
+  min-width: 0;
 }
 
 .topbar {
@@ -460,7 +474,7 @@ textarea {
 }
 
 @media (max-width: 1080px) {
-  .app {
+  .app.is-logged {
     grid-template-columns: 1fr;
   }
 
