@@ -3,6 +3,8 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#f6f6fa" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#08080c" media="(prefers-color-scheme: dark)" />
     <title>PRAXIS — transforme o que você aprende em ação prática</title>
     <meta
       name="description"
@@ -30,7 +32,8 @@
         try {
           const stored = localStorage.getItem('praxis-theme');
           const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-          const theme = stored || (prefersDark ? 'dark' : 'light');
+          const theme =
+            stored === 'dark' || stored === 'light' ? stored : prefersDark ? 'dark' : 'light';
           document.documentElement.dataset.theme = theme;
         } catch (e) {
           document.documentElement.dataset.theme = 'light';
