@@ -12,7 +12,10 @@ Data: 2026-10-20
 O JSON reportado pelo usuário é o **404 do catch-all do servidor**:
 
 ```json
-{"error":{"code":"not_found","message":"Rota não encontrada."},"requestId":"5b977b52-e737-4a7b-98e0-3201887b03e0"}
+{
+  "error": { "code": "not_found", "message": "Rota não encontrada." },
+  "requestId": "5b977b52-e737-4a7b-98e0-3201887b03e0"
+}
 ```
 
 Ele é devolvido (HTTP 404, `content-type: application/json`) por qualquer rota
@@ -22,21 +25,21 @@ HTML que não exista no servidor — inclusive pelas rotas da landing page.
 
 Varredura de TODOS os `href`/`src` da landing page (`/`) e do app (`/app`):
 
-| Link                     | Status | Observação                                   |
-|--------------------------|--------|----------------------------------------------|
-| `/`                      | 200    | ok                                            |
-| `/entrar`                | **404**| **QUEBRADO** → JSON "Rota não encontrada."    |
-| `/cadastro`              | **404**| **QUEBRADO** → JSON "Rota não encontrada."    |
-| `/cadastro?plan=pro`     | **404**| **QUEBRADO** → JSON "Rota não encontrada."    |
-| `/cadastro?plan=pro_annual` | **404**| **QUEBRADO** → JSON "Rota não encontrada." |
-| `/termos`                | 200    | ok                                            |
-| `/privacidade`           | 200    | ok                                            |
-| `/contato`               | 200    | ok                                            |
-| `/app`                   | 200    | ok — **este é o app real (SPA)**              |
-| `/app/app.js`            | 200    | ok                                            |
-| `/app/styles.css`        | 200    | ok (stylesheet próprio do app)                |
-| `/styles.css`            | 200    | ok (stylesheet da landing)                    |
-| `/favicon.ico`           | 404    | QUEBRADO (menor)                              |
+| Link                        | Status  | Observação                                 |
+| --------------------------- | ------- | ------------------------------------------ |
+| `/`                         | 200     | ok                                         |
+| `/entrar`                   | **404** | **QUEBRADO** → JSON "Rota não encontrada." |
+| `/cadastro`                 | **404** | **QUEBRADO** → JSON "Rota não encontrada." |
+| `/cadastro?plan=pro`        | **404** | **QUEBRADO** → JSON "Rota não encontrada." |
+| `/cadastro?plan=pro_annual` | **404** | **QUEBRADO** → JSON "Rota não encontrada." |
+| `/termos`                   | 200     | ok                                         |
+| `/privacidade`              | 200     | ok                                         |
+| `/contato`                  | 200     | ok                                         |
+| `/app`                      | 200     | ok — **este é o app real (SPA)**           |
+| `/app/app.js`               | 200     | ok                                         |
+| `/app/styles.css`           | 200     | ok (stylesheet próprio do app)             |
+| `/styles.css`               | 200     | ok (stylesheet da landing)                 |
+| `/favicon.ico`              | 404     | QUEBRADO (menor)                           |
 
 ### 1.3 Causa raiz
 
@@ -69,15 +72,15 @@ no catch-all JSON 404.
 
 ## 2. Achados secundários (produção)
 
-| # | Achado | Evidência | Impacto |
-|---|--------|-----------|---------|
-| S1 | **Rate limit de auth muito agressivo**: `20 req / 900s` por IP em `/api/auth/*` (o resto da API é 120/min) | headers `ratelimit-limit: 20;w=900` | Em IP compartilhado (CGNAT móvel, NAT corporativo, Wi-Fi de família) o **login/cadastro passa a dar 429** ("Muitas tentativas") — o usuário conclui que o site está quebrado. O app consome 2+ chamadas de auth por page load. |
-| S2 | **CORS fixado em `http://localhost:3000`** | header `access-control-allow-origin: http://localhost:3000` | Resíduo de dev. Qualquer chamada cross-origin real é bloqueada. |
-| S3 | **Checkout indisponível em produção**: `priceId: null` e `purchasable: false` em todos os planos | `GET /api/billing/plans` | Os CTA "Assinar Pro"/"Assinar Pro Anual" terminam em "Pagamentos indisponíveis no momento." (falta config Stripe/env). |
-| S4 | **sitemap.xml aponta para o site errado** | `https://dash.kymus.app/hosting/` | SEO: o sitemap do PRAXIS referencia a página de hosting da Kymus. Deveria listar `/`, `/app`, `/termos`, `/privacidade`, `/contato` no domínio do PRAXIS. |
-| S5 | **`/favicon.ico` → 404** e a landing não declara `<link rel="icon">` | — | Erro 404 no console + ícone genérico no navegador. |
-| S6 | **`?plan=pro` / `?plan=pro_annual` são ignorados pelo app** | `app.js` só lê `checkout`/`billing` da query string | Mesmo depois de corrigir o link, o plano pretendido se perde. |
-| S7 | **Sem rota de tela de cadastro na SPA**: `showAuth()` só é chamada com `'login'` no bootstrap | `app.js` `bootstrap()` | Não há como pré-selecionar a aba "Criar conta" por URL. |
+| #   | Achado                                                                                                     | Evidência                                                   | Impacto                                                                                                                                                                                                                        |
+| --- | ---------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| S1  | **Rate limit de auth muito agressivo**: `20 req / 900s` por IP em `/api/auth/*` (o resto da API é 120/min) | headers `ratelimit-limit: 20;w=900`                         | Em IP compartilhado (CGNAT móvel, NAT corporativo, Wi-Fi de família) o **login/cadastro passa a dar 429** ("Muitas tentativas") — o usuário conclui que o site está quebrado. O app consome 2+ chamadas de auth por page load. |
+| S2  | **CORS fixado em `http://localhost:3000`**                                                                 | header `access-control-allow-origin: http://localhost:3000` | Resíduo de dev. Qualquer chamada cross-origin real é bloqueada.                                                                                                                                                                |
+| S3  | **Checkout indisponível em produção**: `priceId: null` e `purchasable: false` em todos os planos           | `GET /api/billing/plans`                                    | Os CTA "Assinar Pro"/"Assinar Pro Anual" terminam em "Pagamentos indisponíveis no momento." (falta config Stripe/env).                                                                                                         |
+| S4  | **sitemap.xml aponta para o site errado**                                                                  | `https://dash.kymus.app/hosting/`                           | SEO: o sitemap do PRAXIS referencia a página de hosting da Kymus. Deveria listar `/`, `/app`, `/termos`, `/privacidade`, `/contato` no domínio do PRAXIS.                                                                      |
+| S5  | **`/favicon.ico` → 404** e a landing não declara `<link rel="icon">`                                       | —                                                           | Erro 404 no console + ícone genérico no navegador.                                                                                                                                                                             |
+| S6  | **`?plan=pro` / `?plan=pro_annual` são ignorados pelo app**                                                | `app.js` só lê `checkout`/`billing` da query string         | Mesmo depois de corrigir o link, o plano pretendido se perde.                                                                                                                                                                  |
+| S7  | **Sem rota de tela de cadastro na SPA**: `showAuth()` só é chamada com `'login'` no bootstrap              | `app.js` `bootstrap()`                                      | Não há como pré-selecionar a aba "Criar conta" por URL.                                                                                                                                                                        |
 
 ---
 
@@ -148,7 +151,7 @@ src/server.ts (ou src/app.ts / src/index.ts)  (rotas /entrar e /cadastro)
 public/sitemap.xml                (domínio e URLs)
 ```
 
-*(A estrutura real do repositório será confirmada após o clone.)*
+_(A estrutura real do repositório será confirmada após o clone.)_
 
 ---
 

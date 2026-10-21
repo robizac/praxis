@@ -9,20 +9,20 @@
 
 ## 1. Resumo executivo
 
-| # | Achado | Severidade | Status |
-|---|--------|-----------|--------|
-| **A** | **Produção está 4 commits atrás do `main`** — deploy desatualizado | 🔴 Crítico | **Causa raiz do bug reportado** |
-| **B** | **`POST /api/praxis` retorna 502 — a IA está 100% quebrada em produção** | 🔴 Crítico | A função principal do produto não funciona |
-| **C** | Cloudflare mascara o erro real do app (JSON → página genérica do CF) | 🔴 Crítico | Usuário vê "Bad gateway" em vez da dica útil |
-| **D** | `APP_URL=http://localhost:3000` em produção → CORS permite só `localhost` | 🟠 Alto | Config de deploy |
-| **E** | `STRIPE_PRICE_*` vazias → `priceId: null`, `purchasable: false` | 🟠 Alto | Checkout indisponível |
-| **F** | Rate limit de auth: **20 req / 15 min por IP** | 🟠 Alto | Trava login em IP compartilhado |
-| **G** | `formatPtBr` depende de ICU `pt-BR` → quebra em Node sem locale data | 🟡 Médio | Teste falha fora do CI |
-| **H** | `sitemap.xml` aponta para `dash.kymus.app/hosting/` | 🟡 Médio | SEO errado |
-| **I** | Sem favicon → `/favicon.ico` 404 | 🟡 Baixo | Polimento |
-| **J** | `?plan=pro` / `?plan=pro_annual` ignorados pela SPA | 🟡 Baixo | UX dos CTAs de plano |
-| **K** | `weekly_reviews.json` (dado de runtime) versionado no git | 🟡 Baixo | Higiene |
-| **L** | `npm audit`: 9–12 vulnerabilidades (1 crítica) em transitivas | 🟡 Médio | Dependências |
+| #     | Achado                                                                    | Severidade | Status                                       |
+| ----- | ------------------------------------------------------------------------- | ---------- | -------------------------------------------- |
+| **A** | **Produção está 4 commits atrás do `main`** — deploy desatualizado        | 🔴 Crítico | **Causa raiz do bug reportado**              |
+| **B** | **`POST /api/praxis` retorna 502 — a IA está 100% quebrada em produção**  | 🔴 Crítico | A função principal do produto não funciona   |
+| **C** | Cloudflare mascara o erro real do app (JSON → página genérica do CF)      | 🔴 Crítico | Usuário vê "Bad gateway" em vez da dica útil |
+| **D** | `APP_URL=http://localhost:3000` em produção → CORS permite só `localhost` | 🟠 Alto    | Config de deploy                             |
+| **E** | `STRIPE_PRICE_*` vazias → `priceId: null`, `purchasable: false`           | 🟠 Alto    | Checkout indisponível                        |
+| **F** | Rate limit de auth: **20 req / 15 min por IP**                            | 🟠 Alto    | Trava login em IP compartilhado              |
+| **G** | `formatPtBr` depende de ICU `pt-BR` → quebra em Node sem locale data      | 🟡 Médio   | Teste falha fora do CI                       |
+| **H** | `sitemap.xml` aponta para `dash.kymus.app/hosting/`                       | 🟡 Médio   | SEO errado                                   |
+| **I** | Sem favicon → `/favicon.ico` 404                                          | 🟡 Baixo   | Polimento                                    |
+| **J** | `?plan=pro` / `?plan=pro_annual` ignorados pela SPA                       | 🟡 Baixo   | UX dos CTAs de plano                         |
+| **K** | `weekly_reviews.json` (dado de runtime) versionado no git                 | 🟡 Baixo   | Higiene                                      |
+| **L** | `npm audit`: 9–12 vulnerabilidades (1 crítica) em transitivas             | 🟡 Médio   | Dependências                                 |
 
 **Teste falhando no `main`:** `test/domain.test.js` → `toIsoFromPtBr faz round-trip com formatPtBr` — **falha** (ver G).
 
@@ -45,10 +45,10 @@ Idêntico ao JSON reportado pelo usuário. ✅ **Reproduzido.**
 
 Comparei o **hash blob (sha1 do git)** do HTML de produção com todo o histórico:
 
-| Arquivo | Blob em produção | Commit mais recente que o contém |
-|---|---|---|
-| `web/landing/index.html` | `782bf88f…` | `8092455` |
-| `web/app/app.js` | `f0647726…` | `8092455` |
+| Arquivo                  | Blob em produção | Commit mais recente que o contém |
+| ------------------------ | ---------------- | -------------------------------- |
+| `web/landing/index.html` | `782bf88f…`      | `8092455`                        |
+| `web/app/app.js`         | `f0647726…`      | `8092455`                        |
 
 **Produção roda `8092455`** (Merge PR #13 — `feat/fase9-lancamento`, 20/10 07:40 -0300).
 
@@ -69,6 +69,7 @@ e537ec4  fix(landing): corrige links /cadastro e /entrar para /app (404)   ← O
 > O fix `e537ec4` já está no `main` (PR #15, mergeado 41 min após a análise). **O deploy simplesmente não foi feito** (ou falhou).
 
 Consequências do deploy atrasado:
+
 - `/entrar` e `/cadastro` → 404 (o que o usuário reportou)
 - Sem PWA, sem dashboard/resumo, sem exportação CSV/Markdown
 - Sem filtros de histórico no servidor, sem edição/exclusão, sem perfil/senha
@@ -117,11 +118,11 @@ POST /api/praxis → 502
 
 `ProviderError` usa **status 502** (`src/domain/errors.js:70`). O `openai.js` lança esse erro em 3 casos:
 
-| Situação | Mensagem | Latência |
-|---|---|---|
-| Sem chave nenhuma | "Nenhuma chave da OpenAI configurada." | instantânea |
-| Chave inválida/sem crédito | "OpenAI não conseguiu gerar a resposta." | ~300 ms |
-| Modelo inexistente | "OpenAI não conseguiu gerar a resposta." | ~300 ms |
+| Situação                   | Mensagem                                 | Latência    |
+| -------------------------- | ---------------------------------------- | ----------- |
+| Sem chave nenhuma          | "Nenhuma chave da OpenAI configurada."   | instantânea |
+| Chave inválida/sem crédito | "OpenAI não conseguiu gerar a resposta." | ~300 ms     |
+| Modelo inexistente         | "OpenAI não conseguiu gerar a resposta." | ~300 ms     |
 
 A latência de **0,1s** em produção (origem perto do CF) é compatível com **falha de autenticação na OpenAI** — chave ausente/inválida — ou com **modelo inexistente**.
 
@@ -135,46 +136,46 @@ A latência de **0,1s** em produção (origem perto do CF) é compatível com **
 
 ### 4.1 Branches — ✅ **TODAS LIMPAS**
 
-| Branch | ahead de main | mergeada em main |
-|---|---|---|
-| `chore/opencode-custom-tool-v2` | 0 | ✅ |
-| `chore/reviewer-subagent` | 0 | ✅ |
-| `chore/tooling-lint-format` | 0 | ✅ |
-| `docs/agents-e-readme` | 0 | ✅ |
-| `docs/guia-opencode` | 0 | ✅ |
-| `feat/fase12-completude` | 0 | ✅ |
-| `feat/fase8-hardening` | 0 | ✅ |
-| `feat/fase9-lancamento` | 0 | ✅ |
-| `feat/opencode-workflow` | 0 | ✅ |
-| `fix/domain-datas-tags` | 0 | ✅ |
-| `hotfix/landing-links` | 0 | ✅ |
-| `main` | 0 | ✅ |
+| Branch                          | ahead de main | mergeada em main |
+| ------------------------------- | ------------- | ---------------- |
+| `chore/opencode-custom-tool-v2` | 0             | ✅               |
+| `chore/reviewer-subagent`       | 0             | ✅               |
+| `chore/tooling-lint-format`     | 0             | ✅               |
+| `docs/agents-e-readme`          | 0             | ✅               |
+| `docs/guia-opencode`            | 0             | ✅               |
+| `feat/fase12-completude`        | 0             | ✅               |
+| `feat/fase8-hardening`          | 0             | ✅               |
+| `feat/fase9-lancamento`         | 0             | ✅               |
+| `feat/opencode-workflow`        | 0             | ✅               |
+| `fix/domain-datas-tags`         | 0             | ✅               |
+| `hotfix/landing-links`          | 0             | ✅               |
+| `main`                          | 0             | ✅               |
 
 **Nenhum commit perdido, nenhum branch órfão, nenhum trabalho não mergeado.** Working tree limpa. ✅
 
 ### 4.2 Integridade
 
-| Verificação | Resultado |
-|---|---|
-| `git fsck --full --strict` | ✅ sem corrupção |
-| Segredos commitados (`.env`, `*.pem`, `*.key`) | ✅ nenhum (só `.env.example`) |
-| `node_modules/`, `dist/`, `coverage/` versionados | ✅ nenhum |
-| Blobs duplicados | ✅ só as migrações `postgres/` × `sqlite/` (dialetos diferentes — **intencional**) |
+| Verificação                                        | Resultado                                                                                         |
+| -------------------------------------------------- | ------------------------------------------------------------------------------------------------- |
+| `git fsck --full --strict`                         | ✅ sem corrupção                                                                                  |
+| Segredos commitados (`.env`, `*.pem`, `*.key`)     | ✅ nenhum (só `.env.example`)                                                                     |
+| `node_modules/`, `dist/`, `coverage/` versionados  | ✅ nenhum                                                                                         |
+| Blobs duplicados                                   | ✅ só as migrações `postgres/` × `sqlite/` (dialetos diferentes — **intencional**)                |
 | Dead code (grafo de imports a partir das entradas) | ✅ **nenhum** (o único "órfão", `src/jobs/reminders.worker.js`, é entrypoint do `npm run worker`) |
-| `require()` apontando pra arquivo inexistente | ✅ **nenhum** |
-| Assets quebrados nos HTML do repo | ✅ **nenhum** |
-| Rotas citadas na landing × rotas do servidor | ✅ todas existem |
-| Permissões de arquivo | ✅ normais |
-| CRLF/LF | ✅ uniforme |
+| `require()` apontando pra arquivo inexistente      | ✅ **nenhum**                                                                                     |
+| Assets quebrados nos HTML do repo                  | ✅ **nenhum**                                                                                     |
+| Rotas citadas na landing × rotas do servidor       | ✅ todas existem                                                                                  |
+| Permissões de arquivo                              | ✅ normais                                                                                        |
+| CRLF/LF                                            | ✅ uniforme                                                                                       |
 
 ### 4.3 O que precisa de ajuste
 
-| Item | Problema | Ação |
-|---|---|---|
-| `.gitignore` | só 9 linhas; falta `.env.*` (só `.env` está), `*.log`, `coverage/`, `.DS_Store`, `.vscode/`, `*.tsbuildinfo`, `dist/`, `uploads/` | completar |
-| `weekly_reviews.json` | dado de runtime **versionado** (conteúdo `[]`); usado só por `scripts/migrate-legacy.js` | `git rm --cached` + ignorar (o script já lida com ausência) |
-| `.gitattributes` | inexistente → risco de diff falso de CRLF/LF entre máquinas | criar com `* text=auto eol=lf` |
-| `npm audit` | 9 vulns (1 crítica: `tar` via `sqlite3`; `uuid` via `node-cron`; `braces` via `nodemon`) | ver §6 |
+| Item                  | Problema                                                                                                                          | Ação                                                        |
+| --------------------- | --------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------- |
+| `.gitignore`          | só 9 linhas; falta `.env.*` (só `.env` está), `*.log`, `coverage/`, `.DS_Store`, `.vscode/`, `*.tsbuildinfo`, `dist/`, `uploads/` | completar                                                   |
+| `weekly_reviews.json` | dado de runtime **versionado** (conteúdo `[]`); usado só por `scripts/migrate-legacy.js`                                          | `git rm --cached` + ignorar (o script já lida com ausência) |
+| `.gitattributes`      | inexistente → risco de diff falso de CRLF/LF entre máquinas                                                                       | criar com `* text=auto eol=lf`                              |
+| `npm audit`           | 9 vulns (1 crítica: `tar` via `sqlite3`; `uuid` via `node-cron`; `braces` via `nodemon`)                                          | ver §6                                                      |
 
 ### 4.4 Testes / lint no `main`
 
@@ -205,7 +206,7 @@ formato gerado:   "12/25/2026, 20:00"  (en-US)   ← deveria ser "25/12/2026, 20
 
 **5.1 Rotas `/entrar` e `/cadastro` no servidor** (`src/http/app.js`)
 
-Hoje só existem `/`, `/app`, `/termos`, `/privacidade`, `/contato`. O fix `e537ec4` apontava tudo para `/app` — o que resolve o 404, mas **"Começar grátis" cairia na tela de *Entrar***, e as URLs `/entrar` e `/cadastro` (já divulgadas em marketing) continuariam 404.
+Hoje só existem `/`, `/app`, `/termos`, `/privacidade`, `/contato`. O fix `e537ec4` apontava tudo para `/app` — o que resolve o 404, mas **"Começar grátis" cairia na tela de _Entrar_**, e as URLs `/entrar` e `/cadastro` (já divulgadas em marketing) continuariam 404.
 
 Proposta: registrar as duas rotas servindo a SPA, preservando a query string:
 
@@ -223,11 +224,12 @@ No `bootstrap()` (hoje termina em `showAuth('login')`):
 ```js
 const path = window.location.pathname;
 const params = new URLSearchParams(window.location.search);
-const view = path.endsWith('/cadastro') || params.get('tab') === 'register'
-  ? 'register'
-  : path.endsWith('/entrar') || params.get('tab') === 'login'
-    ? 'login'
-    : null;
+const view =
+  path.endsWith('/cadastro') || params.get('tab') === 'register'
+    ? 'register'
+    : path.endsWith('/entrar') || params.get('tab') === 'login'
+      ? 'login'
+      : null;
 if (view) showAuth(view);
 ```
 
@@ -255,6 +257,7 @@ if (view) showAuth(view);
 ### Deploy (o item mais importante)
 
 **O fix do bug reportado é só o deploy.** Após o merge:
+
 1. `npm run migrate` (aplica `009_completed_at` e `010_terms_consent`)
 2. reiniciar web + worker
 3. rodar `npm run smoke -- --base-url https://praxis-5wcz.kymus.app` → **tem que dar 13/13**
@@ -263,10 +266,10 @@ if (view) showAuth(view);
 
 ## 6. Riscos e atenção
 
-| Item | Observação |
-|---|---|
-| Migrações pendentes | `009_completed_at` e `010_terms_consent` — são aditivas, mas testar em staging antes |
-| `npm audit fix --force` | o `--force` propõe **downgrade** (`sqlite3@6.0.1`, `nodemon@1.14.10`, `node-cron@4.6.0`) — **não aplicar `--force`**. Tratar manualmente e testar |
-| Rate limit de auth | Subir de 20/15min ou isentar `/api/auth/csrf` e `/api/auth/me` do limite de tentativas |
-| Repositório está **público** | Lembrete: voltar para *Private* quando terminar (o app não tem segredos no repo, mas o histórico é público) |
-| Tokens expostos no chat | Revogar `github_pat_…` e `ghp_…` ao final |
+| Item                         | Observação                                                                                                                                        |
+| ---------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Migrações pendentes          | `009_completed_at` e `010_terms_consent` — são aditivas, mas testar em staging antes                                                              |
+| `npm audit fix --force`      | o `--force` propõe **downgrade** (`sqlite3@6.0.1`, `nodemon@1.14.10`, `node-cron@4.6.0`) — **não aplicar `--force`**. Tratar manualmente e testar |
+| Rate limit de auth           | Subir de 20/15min ou isentar `/api/auth/csrf` e `/api/auth/me` do limite de tentativas                                                            |
+| Repositório está **público** | Lembrete: voltar para _Private_ quando terminar (o app não tem segredos no repo, mas o histórico é público)                                       |
+| Tokens expostos no chat      | Revogar `github_pat_…` e `ghp_…` ao final                                                                                                         |

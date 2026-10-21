@@ -10,48 +10,48 @@
 
 Dois branches separados, para o PR do bug ficar enxuto e revisável:
 
-| Branch | Escopo |
-|---|---|
-| `fix/rotas-entrar-cadastro` | Bug dos 404 em `/entrar` e `/cadastro` (correção funcional) |
-| `chore/auditoria-limpeza` | Remoção de duplicados/temperados, `.gitignore`, `.gitattributes` |
+| Branch                      | Escopo                                                           |
+| --------------------------- | ---------------------------------------------------------------- |
+| `fix/rotas-entrar-cadastro` | Bug dos 404 em `/entrar` e `/cadastro` (correção funcional)      |
+| `chore/auditoria-limpeza`   | Remoção de duplicados/temperados, `.gitignore`, `.gitattributes` |
 
 ---
 
 ## A. Integridade — "arquivos temperados"
 
-| # | Verificação | Comando / técnica | Severidade |
-|---|---|---|---|
-| A1 | Objetos corrompidos no histórico | `git fsck --full --strict` | 🔴 |
-| A2 | Commits locais não enviados / branches divergentes | `git fetch --all --prune` + `git log --all --not --remotes` | 🔴 |
-| A3 | Working tree suja (alterações não commitadas) | `git status --porcelain` | 🟠 |
-| A4 | **Segredos commitados** (AWS, OpenAI/Anthropic, Stripe, JWT, senhas, `.env`) | scanner de regex no histórico + working tree | 🔴 |
-| A5 | `.env` / `.env.local` / `*.pem` / `*.key` versionados | `git ls-files` | 🔴 |
-| A6 | Artefatos de build commitados (`node_modules/`, `dist/`, `build/`, `.next/`, `coverage/`) | `git ls-files` | 🟠 |
-| A7 | Arquivos duplicados: mesmo conteúdo em nomes/caminhos diferentes | hash de blobs duplicados (`git cat-file --batch-all-objects`) | 🟡 |
-| A8 | Arquivos com nome duplicado em diretórios diferentes (shadowing) | grouping por basename | 🟡 |
-| A9 | Arquivos de 0 byte / placeholders vazios | `find -size 0` | 🟡 |
-| A10 | Symlinks quebrados | `find -xtype l` | 🟡 |
-| A11 | Permissões erradas (ex.: `.sh` sem `+x`, ou `+x` em tudo) | `git ls-files -s` (modo 100755/100644) | 🟡 |
-| A12 | Mistura CRLF/LF sem `.gitattributes` | `git ls-files --eol` | 🟡 |
-| A13 | Binários grandes commitados | blobs > 1 MB | 🟡 |
-| A14 | `package-lock.json` fora de sincronia com `package.json` | `npm ci` em modo dry-run | 🟠 |
-| A15 | Referências a paths inexistentes (`require('./x')` sem `x`) | grafo de imports | 🟠 |
+| #   | Verificação                                                                               | Comando / técnica                                             | Severidade |
+| --- | ----------------------------------------------------------------------------------------- | ------------------------------------------------------------- | ---------- |
+| A1  | Objetos corrompidos no histórico                                                          | `git fsck --full --strict`                                    | 🔴         |
+| A2  | Commits locais não enviados / branches divergentes                                        | `git fetch --all --prune` + `git log --all --not --remotes`   | 🔴         |
+| A3  | Working tree suja (alterações não commitadas)                                             | `git status --porcelain`                                      | 🟠         |
+| A4  | **Segredos commitados** (AWS, OpenAI/Anthropic, Stripe, JWT, senhas, `.env`)              | scanner de regex no histórico + working tree                  | 🔴         |
+| A5  | `.env` / `.env.local` / `*.pem` / `*.key` versionados                                     | `git ls-files`                                                | 🔴         |
+| A6  | Artefatos de build commitados (`node_modules/`, `dist/`, `build/`, `.next/`, `coverage/`) | `git ls-files`                                                | 🟠         |
+| A7  | Arquivos duplicados: mesmo conteúdo em nomes/caminhos diferentes                          | hash de blobs duplicados (`git cat-file --batch-all-objects`) | 🟡         |
+| A8  | Arquivos com nome duplicado em diretórios diferentes (shadowing)                          | grouping por basename                                         | 🟡         |
+| A9  | Arquivos de 0 byte / placeholders vazios                                                  | `find -size 0`                                                | 🟡         |
+| A10 | Symlinks quebrados                                                                        | `find -xtype l`                                               | 🟡         |
+| A11 | Permissões erradas (ex.: `.sh` sem `+x`, ou `+x` em tudo)                                 | `git ls-files -s` (modo 100755/100644)                        | 🟡         |
+| A12 | Mistura CRLF/LF sem `.gitattributes`                                                      | `git ls-files --eol`                                          | 🟡         |
+| A13 | Binários grandes commitados                                                               | blobs > 1 MB                                                  | 🟡         |
+| A14 | `package-lock.json` fora de sincronia com `package.json`                                  | `npm ci` em modo dry-run                                      | 🟠         |
+| A15 | Referências a paths inexistentes (`require('./x')` sem `x`)                               | grafo de imports                                              | 🟠         |
 
 ---
 
 ## B. Quebrados / faltando
 
-| # | Verificação | Como |
-|---|---|---|
-| B1 | **Compila** | `npm ci` + `npm run build` / `tsc --noEmit` |
-| B2 | **Lint limpo** | `npm run lint` |
-| B3 | **Testes passam** | `npm test` |
-| B4 | **Dead code**: arquivos que ninguém importa | grafo de imports a partir dos entrypoints |
-| B5 | **Assets quebrados**: todo `href`/`src` de HTML/CSS aponta para arquivo existente no repo | **mesma técnica que achou o bug em produção** (`/entrar`, `/cadastro`) |
-| B6 | **Rotas da API**: todo `fetch('/api/...')` do front tem rota registrada no back | comparar `app.js` × tabela de rotas do servidor |
-| B7 | **Variáveis de ambiente**: todo `process.env.X` / `import.meta.env.X` tem entrada no `.env.example` | varredura de `env` |
-| B8 | Segredos/URLs hardcoded (localhost em código de produção, `http://localhost:3000` no CORS) | grep de `localhost` / `127.0.0.1` | 
-| B9 | Documentação desatualizada (README x comportamento real) | revisão manual |
+| #   | Verificação                                                                                         | Como                                                                   |
+| --- | --------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------- |
+| B1  | **Compila**                                                                                         | `npm ci` + `npm run build` / `tsc --noEmit`                            |
+| B2  | **Lint limpo**                                                                                      | `npm run lint`                                                         |
+| B3  | **Testes passam**                                                                                   | `npm test`                                                             |
+| B4  | **Dead code**: arquivos que ninguém importa                                                         | grafo de imports a partir dos entrypoints                              |
+| B5  | **Assets quebrados**: todo `href`/`src` de HTML/CSS aponta para arquivo existente no repo           | **mesma técnica que achou o bug em produção** (`/entrar`, `/cadastro`) |
+| B6  | **Rotas da API**: todo `fetch('/api/...')` do front tem rota registrada no back                     | comparar `app.js` × tabela de rotas do servidor                        |
+| B7  | **Variáveis de ambiente**: todo `process.env.X` / `import.meta.env.X` tem entrada no `.env.example` | varredura de `env`                                                     |
+| B8  | Segredos/URLs hardcoded (localhost em código de produção, `http://localhost:3000` no CORS)          | grep de `localhost` / `127.0.0.1`                                      |
+| B9  | Documentação desatualizada (README x comportamento real)                                            | revisão manual                                                         |
 
 ---
 
