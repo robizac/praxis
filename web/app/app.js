@@ -17,7 +17,6 @@ const ui = {
   navLinks: Array.from(document.querySelectorAll('[data-nav]')),
   generateBtn: document.getElementById('generateBtn'),
   inputLearned: document.getElementById('inputLearned'),
-  inputArea: document.getElementById('inputArea'),
   homeNotice: document.getElementById('homeNotice'),
   resultCards: document.getElementById('resultCards'),
   summaryText: document.getElementById('summaryText'),
@@ -330,15 +329,9 @@ async function refreshHistoryAndMeta() {
 
 async function generateAction() {
   const input = sanitize(ui.inputLearned.value);
-  const area = sanitize(ui.inputArea.value);
 
   if (!input) {
     showNotice(ui.homeNotice, 'Escreva o que você quer aprender para gerar um passo a passo.');
-    return;
-  }
-
-  if (!area) {
-    showNotice(ui.homeNotice, 'Selecione a Área da Vida para continuar.');
     return;
   }
 
@@ -349,18 +342,24 @@ async function generateAction() {
     const data = await requestJson('/api/praxis', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ input, area })
+      body: JSON.stringify({ input })
     });
 
     hideNotice(ui.homeNotice);
-    ui.resAcao.textContent = data.acao;
-    ui.resPrazo.textContent = data.prazo;
-    ui.resRegra.textContent = data.regraMinima || data.regra_minima;
-    ui.resultCards.hidden = false;
+    const tasks = Array.isArray(data.tasks) ? data.tasks : data.acao ? [data] : [];
+    if (tasks.length) {
+      ui.resAcao.textContent = tasks.map((t, i) => `${i + 1}. ${t.acao}`).join('\n');
+      ui.resPrazo.textContent = tasks.map((t) => t.prazo).join(', ');
+      ui.resRegra.textContent = tasks.map((t) => t.regra_minima || t.regraMinima).join(' | ');
+      ui.resultCards.hidden = false;
+    }
 
     const notes = [];
     if (data.warning) {
       notes.push(data.warning);
+    }
+    if (tasks.length > 1) {
+      notes.push(`${tasks.length} tarefas criadas.`);
     }
     if (data.defaultReminder) {
       const when = new Date(data.defaultReminder.remind_at_iso).toLocaleString('pt-BR');

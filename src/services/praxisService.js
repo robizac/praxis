@@ -60,16 +60,14 @@ function computeDeadline(praxis) {
   return { prazoIso, prazoHumano };
 }
 
-/** Gera uma tarefa prática a partir do que a pessoa quer aprender (usa IA). */
+/** Gera um passo a passo de tarefas a partir do que a pessoa quer aprender (usa IA). */
 async function generate({ userId, planId = 'free', texto, area }) {
   const input = String(texto || '').trim();
   if (!input) {
     throw new BadRequestError('Campo texto é obrigatório.');
   }
 
-  const selectedArea = normalizeArea(area);
   const pendentes = await praxisRepo.countPending(userId);
-
   if (shouldBlockNewAction(pendentes)) {
     throw new ConflictError(
       'Você já tem 2 ações pendentes. Conclua uma antes de gerar outra.',
@@ -78,43 +76,65 @@ async function generate({ userId, planId = 'free', texto, area }) {
     );
   }
 
-  const ai = await aiService.generate({ userId, planId, input, area: selectedArea });
+  const ai = await aiService.generate({ userId, planId, input, area: area || null });
   const parsed = parsePraxisJson(ai.text);
 
-  let praxis;
+  let tasks = [];
   let warning = '';
   if (!parsed.ok) {
     console.error('[praxis] parse inválido, conteúdo bruto:', ai.text);
-    praxis = buildSafeFallback(input, selectedArea);
+    const fallback = buildSafeFallback(input, area || null);
+    tasks = [fallback];
     warning = 'Não entendi a resposta da IA — gere novamente.';
   } else {
-    praxis = { ...parsed.data, area: selectedArea || parsed.data.area };
+    tasks = parsed.data.tasks || [];
   }
 
-  const { prazoIso, prazoHumano } = computeDeadline(praxis);
+  const remaining = Math.max(1, 2 - pendentes);
+  tasks = tasks.slice(0, remaining);
 
-  const id = await praxisRepo.insert(userId, {
-    texto: input,
-    acaoPratica: praxis.acao,
-    prazoIso,
-    prazoHumano,
-    regraMinima: praxis.regra_minima,
-    area: praxis.area
-  });
+  const created = [];
+  let firstReminder = null;
+  for (const task of tasks) {
+    const selectedArea = normalizeArea(task.area || area);
+    const { prazoIso, prazoHumano } = computeDeadline({
+      ...task,
+      area: selectedArea,
+      prazo: task.prazo
+    });
 
-  const row = await praxisRepo.getById(userId, id);
+    const id = await praxisRepo.insert(userId, {
+      texto: input,
+      acaoPratica: task.acao,
+      prazoIso,
+      prazoHumano,
+      regraMinima: task.regra_minima,
+      area: selectedArea
+    });
 
-  // Fase 7: lembrete default ao criar a ação (opcional, configurável pelo usuário).
-  const defaultReminder = await reminderService.createDefaultForItem({
-    userId,
-    planId,
-    praxisId: id,
-    prazoIso
-  });
+    const row = await praxisRepo.getById(userId, id);
+    created.push(mapRow(row));
+
+    const reminder = await reminderService
+      .createDefaultForItem({
+        userId,
+        planId,
+        praxisId: id,
+        prazoIso
+      })
+      .catch(() => null);
+    if (!firstReminder && reminder) firstReminder = reminder;
+  }
 
   return {
-    ...mapRow(row),
-    defaultReminder,
+    tasks: created,
+    id: created[0]?.id,
+    acao: created[0]?.acao,
+    prazo: created[0]?.prazo,
+    regra_minima: created[0]?.regra_minima,
+    regraMinima: created[0]?.regraMinima,
+    area: created[0]?.area,
+    defaultReminder: firstReminder,
     provider: ai.provider,
     source: ai.source,
     cached: ai.cached,

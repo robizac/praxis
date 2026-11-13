@@ -27,19 +27,7 @@
       rel="stylesheet"
     />
     <link rel="stylesheet" href="styles.css" />
-    <script>
-      (function () {
-        try {
-          const stored = localStorage.getItem('praxis-theme');
-          const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-          const theme =
-            stored === 'dark' || stored === 'light' ? stored : prefersDark ? 'dark' : 'light';
-          document.documentElement.dataset.theme = theme;
-        } catch (e) {
-          document.documentElement.dataset.theme = 'light';
-        }
-      })();
-    </script>
+    <script src="theme.js"></script>
     <script type="application/ld+json">
       {
         "@context": "https://schema.org",
@@ -279,32 +267,5 @@
         <p class="footer-note">© PRAXIS</p>
       </div>
     </footer>
-    <script>
-      (function () {
-        const key = 'praxis-theme';
-        const toggle = document.querySelector('[data-theme-toggle]');
-        const icon = toggle ? toggle.querySelector('.theme-toggle-icon') : null;
-        const label = toggle ? toggle.querySelector('.theme-toggle-label') : null;
-
-        function apply(theme) {
-          const t = theme === 'dark' ? 'dark' : 'light';
-          document.documentElement.dataset.theme = t;
-          try {
-            localStorage.setItem(key, t);
-          } catch {}
-          if (icon) icon.textContent = t === 'dark' ? '◑' : '◐';
-          if (label) label.textContent = t === 'dark' ? 'Escuro' : 'Claro';
-        }
-
-        if (toggle) {
-          const current = document.documentElement.dataset.theme === 'dark' ? 'dark' : 'light';
-          apply(current);
-          toggle.addEventListener('click', function () {
-            const now = document.documentElement.dataset.theme === 'dark' ? 'dark' : 'light';
-            apply(now === 'dark' ? 'light' : 'dark');
-          });
-        }
-      })();
-    </script>
   </body>
 </html>
