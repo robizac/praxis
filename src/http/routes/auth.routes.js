@@ -113,6 +113,10 @@ router.post('/reset-password', async (req, res, next) => {
 });
 
 // Google OAuth 2.0 (opcional — requer GOOGLE_CLIENT_ID/SECRET).
+router.get('/google/status', (req, res) => {
+  res.json({ configured: Boolean(config.google.clientId && config.google.clientSecret) });
+});
+
 router.get('/google', (req, res) => {
   if (!config.google.clientId || !config.google.clientSecret) {
     return res
