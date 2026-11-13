@@ -60,7 +60,7 @@ function computeDeadline(praxis) {
   return { prazoIso, prazoHumano };
 }
 
-/** Gera uma nova ação a partir de um aprendizado (usa IA). */
+/** Gera uma tarefa prática a partir do que a pessoa quer aprender (usa IA). */
 async function generate({ userId, planId = 'free', texto, area }) {
   const input = String(texto || '').trim();
   if (!input) {
