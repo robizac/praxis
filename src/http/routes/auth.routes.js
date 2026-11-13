@@ -1,6 +1,7 @@
 'use strict';
 
 const express = require('express');
+const { config } = require('../../config/env');
 const authService = require('../../services/authService');
 const { authLimiter } = require('../middleware/security');
 const { ensureCsrfToken, CSRF_COOKIE } = require('../middleware/cookies');
@@ -106,6 +107,81 @@ router.post('/reset-password', async (req, res, next) => {
       ip: requestIp(req)
     });
     res.json(result);
+  } catch (error) {
+    next(error);
+  }
+});
+
+// Google OAuth 2.0 (opcional — requer GOOGLE_CLIENT_ID/SECRET).
+router.get('/google', (req, res) => {
+  if (!config.google.clientId || !config.google.clientSecret) {
+    return res
+      .status(503)
+      .json({ error: { code: 'google_not_configured', message: 'Google OAuth não configurado.' } });
+  }
+  const state = require('crypto').randomBytes(16).toString('hex');
+  res.cookie('praxis_oauth_state', state, {
+    httpOnly: true,
+    sameSite: 'lax',
+    maxAge: 10 * 60 * 1000
+  });
+  const params = new URLSearchParams({
+    client_id: config.google.clientId,
+    redirect_uri: config.google.redirectUri,
+    response_type: 'code',
+    scope: 'openid email profile',
+    state,
+    access_type: 'online',
+    prompt: 'select_account'
+  });
+  res.redirect(`https://accounts.google.com/o/oauth2/v2/auth?${params.toString()}`);
+});
+
+router.get('/google/callback', async (req, res, next) => {
+  try {
+    if (!config.google.clientId || !config.google.clientSecret) {
+      return res.status(503).send('Google OAuth não configurado.');
+    }
+    const { code, state } = req.query;
+    if (!code || !state || state !== req.cookies?.praxis_oauth_state) {
+      return res.status(400).send('Estado OAuth inválido.');
+    }
+    res.clearCookie('praxis_oauth_state');
+
+    const tokenRes = await fetch('https://oauth2.googleapis.com/token', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: new URLSearchParams({
+        code: String(code),
+        client_id: config.google.clientId,
+        client_secret: config.google.clientSecret,
+        redirect_uri: config.google.redirectUri,
+        grant_type: 'authorization_code'
+      })
+    });
+    const tokenData = await tokenRes.json();
+    if (!tokenRes.ok || !tokenData.access_token) {
+      throw new Error('Falha ao obter token do Google.');
+    }
+
+    const userRes = await fetch('https://openidconnect.googleapis.com/v1/userinfo', {
+      headers: { Authorization: `Bearer ${tokenData.access_token}` }
+    });
+    const profile = await userRes.json();
+    if (!userRes.ok || !profile.email) {
+      throw new Error('Falha ao obter perfil do Google.');
+    }
+
+    const result = await authService.googleLogin({
+      email: profile.email,
+      name: profile.name || profile.email,
+      emailVerified: profile.email_verified !== false,
+      ip: req.ip || req.socket?.remoteAddress,
+      userAgent: req.headers['user-agent']
+    });
+
+    setSessionCookie(res, result.session.token);
+    res.redirect('/app');
   } catch (error) {
     next(error);
   }

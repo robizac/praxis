@@ -2,7 +2,8 @@
 
 const express = require('express');
 const db = require('../../db');
-const { requireRole } = require('../middleware/auth');
+const authService = require('../../services/authService');
+const { requireRole, setSessionCookie, requestIp } = require('../middleware/auth');
 
 const router = express.Router();
 
@@ -42,6 +43,19 @@ router.get('/admin/summary', async (req, res, next) => {
         costUsd: Number(usage ? usage.cost : 0)
       }
     });
+  } catch (error) {
+    next(error);
+  }
+});
+
+router.post('/admin/impersonate/:userId', async (req, res, next) => {
+  try {
+    const result = await authService.impersonate(req.params.userId, {
+      ip: requestIp(req),
+      userAgent: req.headers['user-agent']
+    });
+    setSessionCookie(res, result.session.token);
+    res.json({ ok: true, user: result.user, expiresAt: result.session.expiresAt });
   } catch (error) {
     next(error);
   }
