@@ -333,7 +333,7 @@ async function generateAction() {
   const area = sanitize(ui.inputArea.value);
 
   if (!input) {
-    showNotice(ui.homeNotice, 'Escreva o que você aprendeu para gerar uma ação.');
+    showNotice(ui.homeNotice, 'Escreva o que você quer aprender para gerar um passo a passo.');
     return;
   }
 
@@ -791,6 +791,8 @@ async function removeByok() {
 }
 
 function showAuth(view = 'login') {
+  const brand = document.getElementById('brandLink');
+  if (brand) brand.setAttribute('href', '/');
   authUi.shell.hidden = true;
   Object.values(screens).forEach((node) => node.classList.remove('active'));
   authUi.screen.classList.add('active');
@@ -807,6 +809,8 @@ function showAuth(view = 'login') {
 }
 
 function showApp(user) {
+  const brand = document.getElementById('brandLink');
+  if (brand) brand.setAttribute('href', '#/home');
   authUi.screen.classList.remove('active');
   authUi.shell.hidden = false;
   authUi.userEmail.textContent = user?.email || '';

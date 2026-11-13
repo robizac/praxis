@@ -17,9 +17,9 @@ const PRAXIS_JSON_SCHEMA = {
 function buildPrompt(input, selectedArea) {
   return `
 Você é o PRAXIS.
-Transforme o aprendizado abaixo em execução prática mínima, sem teoria.
+Transforme o que a pessoa quer aprender abaixo em um passo a passo prático de tarefas, sem teoria.
 
-Aprendizado:
+O que quero aprender:
 "${input}"
 
 Área da Vida escolhida pelo usuário (obrigatória e prioritária):
