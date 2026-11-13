@@ -27,9 +27,9 @@ const contentSecurityPolicy = {
     'form-action': ["'self'"],
     'script-src': ["'self'"],
     'script-src-attr': ["'none'"],
-    'style-src': ["'self'"],
+    'style-src': ["'self'", 'https://fonts.googleapis.com'],
     'img-src': ["'self'", 'data:'],
-    'font-src': ["'self'", 'data:'],
+    'font-src': ["'self'", 'data:', 'https://fonts.gstatic.com'],
     'connect-src': ["'self'"],
     // Sob HTTPS, força subrecursos a também usarem HTTPS. Em dev (http) isso
     // quebraria os assets locais, então só entra em produção.

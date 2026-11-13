@@ -9,14 +9,12 @@ test('parsePraxisJson normaliza payload do Ollama para o contrato PRAXIS', () =>
   const parsed = parsePraxisJson(raw);
 
   assert.equal(parsed.ok, true);
-  assert.deepEqual(
-    Object.keys(parsed.data).sort(),
-    ['acao', 'area', 'prazo', 'regra_minima'].sort()
-  );
-  assert.equal(parsed.data.area, 'Energia & Ritmo');
-  assert.equal(typeof parsed.data.acao, 'string');
-  assert.equal(typeof parsed.data.prazo, 'string');
-  assert.equal(typeof parsed.data.regra_minima, 'string');
+  assert.deepEqual(Object.keys(parsed.data).sort(), ['tasks'].sort());
+  assert.equal(Array.isArray(parsed.data.tasks), true);
+  assert.equal(parsed.data.tasks[0].area, 'Energia & Ritmo');
+  assert.equal(typeof parsed.data.tasks[0].acao, 'string');
+  assert.equal(typeof parsed.data.tasks[0].prazo, 'string');
+  assert.equal(typeof parsed.data.tasks[0].regra_minima, 'string');
 });
 
 test('parsePraxisJson rejeita texto sem JSON válido', () => {

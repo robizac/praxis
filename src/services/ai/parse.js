@@ -34,12 +34,21 @@ function parsePraxisJson(rawText) {
     return { ok: false, error: 'invalid_json', raw };
   }
 
-  const normalized = normalizePraxisPayload(parsed);
-  if (!normalized.acao || !normalized.prazo || !normalized.regra_minima) {
+  let tasks = [];
+  if (Array.isArray(parsed.tasks)) {
+    tasks = parsed.tasks.map((t) => normalizePraxisPayload(t));
+  } else if (Array.isArray(parsed)) {
+    tasks = parsed.map((t) => normalizePraxisPayload(t));
+  } else if (parsed.acao) {
+    tasks = [normalizePraxisPayload(parsed)];
+  }
+
+  tasks = tasks.filter((t) => t.acao && t.prazo && t.regra_minima);
+  if (!tasks.length) {
     return { ok: false, error: 'missing_fields', raw };
   }
 
-  return { ok: true, data: normalized };
+  return { ok: true, data: { tasks } };
 }
 
 module.exports = { parsePraxisJson };

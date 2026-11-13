@@ -129,6 +129,8 @@ body::after {
 
 .brand {
   display: flex;
+  text-decoration: none;
+  color: inherit;
   align-items: center;
   gap: 10px;
   font-weight: 600;
