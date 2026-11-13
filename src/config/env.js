@@ -198,6 +198,14 @@ const config = {
     chatId: process.env.TELEGRAM_CHAT_ID || '',
     botUsername: process.env.TELEGRAM_BOT_USERNAME || '',
     webhookSecret: process.env.TELEGRAM_WEBHOOK_SECRET || ''
+  },
+
+  google: {
+    clientId: process.env.GOOGLE_CLIENT_ID || '',
+    clientSecret: process.env.GOOGLE_CLIENT_SECRET || '',
+    redirectUri:
+      process.env.GOOGLE_REDIRECT_URI ||
+      `${(process.env.APP_URL || '').replace(/\/$/, '')}/api/auth/google/callback`
   }
 };
 

@@ -313,11 +313,64 @@ async function changePassword(userId, { currentPassword, newPassword } = {}) {
   return { ok: true };
 }
 
+async function googleLogin({ email: rawEmail, name, emailVerified, ip, userAgent }) {
+  const emailAddr = normalizeEmail(rawEmail);
+  assertValidEmail(emailAddr);
+
+  let user = await usersRepo.findByEmail(emailAddr);
+  if (!user) {
+    user = await usersRepo.create({
+      email: emailAddr,
+      passwordHash: null,
+      name: String(name || emailAddr).trim(),
+      timezone: 'America/Sao_Paulo',
+      termsAcceptedAt: new Date().toISOString()
+    });
+    if (emailVerified) {
+      await usersRepo.markEmailVerified(user.id);
+      user = await usersRepo.findById(user.id);
+    }
+  } else if (emailVerified && !user.email_verified_at) {
+    await usersRepo.markEmailVerified(user.id);
+    user = await usersRepo.findById(user.id);
+  }
+
+  const session = await createSession(user, { ip, userAgent });
+  await auditService.record({
+    userId: user.id,
+    action: 'auth.google_login',
+    entity: 'user',
+    entityId: user.id,
+    ip
+  });
+
+  return { user: publicUser(user), session };
+}
+
+async function impersonate(targetUserId, { ip, userAgent } = {}) {
+  const user = await usersRepo.findById(targetUserId);
+  if (!user) {
+    throw new NotFoundError('Usuário não encontrado.');
+  }
+  const session = await createSession(user, { ip, userAgent });
+  await auditService.record({
+    userId: null,
+    action: 'admin.impersonate',
+    entity: 'user',
+    entityId: targetUserId,
+    ip,
+    metadata: JSON.stringify({ actor: 'admin' })
+  });
+  return { user: publicUser(user), session };
+}
+
 module.exports = {
   SESSION_TTL_DAYS,
   publicUser,
   createSession,
   register,
+  googleLogin,
+  impersonate,
   updateProfile,
   changePassword,
   login,
