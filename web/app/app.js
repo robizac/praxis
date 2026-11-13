@@ -1205,3 +1205,14 @@ authUi.logoutBtn.addEventListener('click', async () => {
 });
 
 bootstrap();
+
+async function checkGoogleOAuth() {
+  try {
+    const data = await fetch('/api/auth/google/status', { credentials: 'same-origin' }).then((r) =>
+      r.json()
+    );
+    const btn = document.getElementById('googleLoginBtn');
+    if (btn) btn.hidden = !data.configured;
+  } catch (_error) {}
+}
+checkGoogleOAuth();
