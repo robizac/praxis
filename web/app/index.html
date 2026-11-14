@@ -14,6 +14,9 @@
       href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
       rel="stylesheet"
     />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="/app/styles.css" />
     <script>
       (function () {
@@ -125,6 +128,7 @@
           <nav class="nav">
             <div class="nav-section">
               <a href="#/home" data-nav="home"><span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10.5L12 3l9 7.5"/><path d="M5 9.5V20h14V9.5"/></svg></span><span class="nav-text">Início</span></a>
+              <a href="#/entries" data-nav="entries"><span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16v16H4z"/><path d="M8 8h8M8 12h8M8 16h5"/></svg></span><span class="nav-text">Entradas</span></a>
               <a href="#/history" data-nav="history"><span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 7h8M8 11h8M8 15h5"/></svg></span><span class="nav-text">Histórico</span></a>
               <a href="#/review" data-nav="review"><span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h12l4 4v12H4z"/><path d="M8 12h8M8 16h5"/></svg></span><span class="nav-text">Revisão Semanal</span></a>
               <a href="#/account" data-nav="account"><span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/></svg></span><span class="nav-text">Conta</span></a>
@@ -160,6 +164,15 @@
                 <strong>Regra mínima</strong><span id="resRegra"></span>
               </article>
             </div>
+          </section>
+
+          <section id="screen-entries" class="screen">
+            <h2>Entradas</h2>
+            <p class="subtitle">Registro livre de aprendizados e reflexões.</p>
+            <textarea id="entryContent" placeholder="Escreva uma entrada..."></textarea>
+            <button id="saveEntryBtn" class="button" type="button">Salvar entrada</button>
+            <div id="entryNotice" class="notice"></div>
+            <div id="entryList" class="review-list"></div>
           </section>
 
           <section id="screen-history" class="screen">

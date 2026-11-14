@@ -26,6 +26,7 @@ router.use(require('./billing.routes'));
 router.use(require('./telegram.routes'));
 router.use(require('./settings.routes'));
 router.use(require('./account.routes'));
+router.use(require('./entries.routes'));
 router.use(require('./admin.routes'));
 
 module.exports = router;
