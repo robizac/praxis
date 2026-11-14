@@ -1204,7 +1204,7 @@ authUi.logoutBtn.addEventListener('click', async () => {
   } catch (_error) {
     // Sessão já pode ter expirado; segue para a tela de login.
   }
-  showAuth('login');
+  window.location.href = '/';
 });
 
 bootstrap();
