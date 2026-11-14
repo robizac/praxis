@@ -196,6 +196,10 @@ body::after {
 
 .sidebar.collapsed .nav a {
   justify-content: center;
+}
+.sidebar.collapsed #logoutBtn {
+  justify-content: center;
+  width: 100%;
   padding: 9px 0;
 }
 
@@ -213,6 +217,12 @@ body::after {
   display: flex;
   flex-direction: column;
   gap: 4px;
+}
+
+.nav-icon svg {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
 }
 
 .nav a {
@@ -634,4 +644,14 @@ textarea {
   .nav a {
     white-space: nowrap;
   }
+}
+
+.review-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.review-stack textarea {
+  min-height: 110px;
 }
