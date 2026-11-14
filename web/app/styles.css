@@ -172,6 +172,43 @@ body::after {
   padding: 0 8px;
 }
 
+.sidebar-toggle {
+  border: none;
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+  font-size: 0.9rem;
+  padding: 4px 8px;
+  border-radius: 8px;
+}
+
+.sidebar.collapsed {
+  width: 72px;
+  padding: 26px 8px;
+}
+
+.sidebar.collapsed .nav-text,
+.sidebar.collapsed .user-email,
+.sidebar.collapsed .brand span,
+.sidebar.collapsed .theme-toggle-label {
+  display: none;
+}
+
+.sidebar.collapsed .nav a {
+  justify-content: center;
+  padding: 9px 0;
+}
+
+.sidebar.collapsed .nav-icon {
+  font-size: 1.2rem;
+}
+
+.sidebar.collapsed .sidebar-header {
+  justify-content: center;
+  flex-direction: column;
+  gap: 8px;
+}
+
 .nav {
   display: flex;
   flex-direction: column;
@@ -429,6 +466,8 @@ select {
   padding: 10px 14px;
   font-size: 1rem;
   font-family: inherit;
+  min-height: 44px;
+  line-height: 1.4;
 }
 
 textarea {
