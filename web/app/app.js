@@ -1,6 +1,7 @@
 const screens = {
   home: document.getElementById('screen-home'),
   history: document.getElementById('screen-history'),
+  entries: document.getElementById('screen-entries'),
   review: document.getElementById('screen-review'),
   account: document.getElementById('screen-account'),
   admin: document.getElementById('screen-admin')
@@ -61,6 +62,10 @@ const ui = {
   saveByokBtn: document.getElementById('saveByokBtn'),
   removeByokBtn: document.getElementById('removeByokBtn'),
   accountNotice: document.getElementById('accountNotice'),
+  entryContent: document.getElementById('entryContent'),
+  saveEntryBtn: document.getElementById('saveEntryBtn'),
+  entryNotice: document.getElementById('entryNotice'),
+  entryList: document.getElementById('entryList'),
   adminSummary: document.getElementById('adminSummary'),
   adminUsers: document.getElementById('adminUsers'),
   profileName: document.getElementById('profileName'),
@@ -135,7 +140,13 @@ function hideNotice(el) {
 
 function getRoute() {
   const route = location.hash.replace('#/', '');
-  if (route === 'history' || route === 'review' || route === 'account' || route === 'admin') {
+  if (
+    route === 'history' ||
+    route === 'entries' ||
+    route === 'review' ||
+    route === 'account' ||
+    route === 'admin'
+  ) {
     return route;
   }
   return 'home';
@@ -246,6 +257,26 @@ async function loadAdmin() {
         .join('') || '<p class="empty">Nenhum usuário.</p>';
   } catch (_error) {
     ui.adminSummary.textContent = 'Acesso negado ou erro ao carregar admin.';
+  }
+}
+
+async function loadEntries() {
+  if (!ui.entryList) return;
+  try {
+    const items = await requestJson('/api/entries');
+    const list = Array.isArray(items) ? items : [];
+    if (!list.length) {
+      ui.entryList.innerHTML = '<p class="empty">Nenhuma entrada ainda.</p>';
+      return;
+    }
+    ui.entryList.innerHTML = list
+      .map(
+        (e) =>
+          `<article class="card history-item"><div>${escapeHtml(e.content)}</div><div class="meta">Criado em: ${escapeHtml(new Date(e.created_at).toLocaleString('pt-BR'))}</div><button class="button secondary small" data-action="delete-entry" data-id="${e.id}">Excluir</button></article>`
+      )
+      .join('');
+  } catch (_error) {
+    ui.entryList.innerHTML = '<p class="empty">Não foi possível carregar as entradas.</p>';
   }
 }
 
@@ -433,6 +464,36 @@ async function deleteItem(id) {
     await refreshHistoryAndMeta();
   } catch (_error) {
     alert('Não foi possível excluir esta ação.');
+  }
+}
+
+async function saveEntry() {
+  const content = sanitize(ui.entryContent.value);
+  if (!content) {
+    showNotice(ui.entryNotice, 'Escreva uma entrada antes de salvar.');
+    return;
+  }
+  try {
+    await requestJson('/api/entries', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ content })
+    });
+    ui.entryContent.value = '';
+    hideNotice(ui.entryNotice);
+    await loadEntries();
+  } catch (error) {
+    showNotice(ui.entryNotice, error.message || 'Não foi possível salvar a entrada.');
+  }
+}
+
+async function deleteEntry(id) {
+  if (!window.confirm('Excluir esta entrada?')) return;
+  try {
+    await requestJson(`/api/entries/${id}`, { method: 'DELETE' });
+    await loadEntries();
+  } catch (_error) {
+    alert('Não foi possível excluir a entrada.');
   }
 }
 
@@ -826,6 +887,7 @@ async function refreshData() {
   await loadReviews();
   await loadAccount();
   await loadAdmin();
+  await loadEntries();
 }
 
 const THEME_KEY = 'praxis-theme';
@@ -1140,6 +1202,15 @@ ui.exportDataBtn.addEventListener('click', async () => {
   }
 });
 
+if (ui.entryList)
+  ui.entryList.addEventListener('click', (event) => {
+    const target = event.target;
+    if (!(target instanceof HTMLButtonElement)) return;
+    if (target.dataset.action === 'delete-entry') {
+      deleteEntry(target.dataset.id);
+    }
+  });
+
 ui.historyList.addEventListener('click', (event) => {
   const target = event.target;
   if (!(target instanceof HTMLButtonElement)) {
@@ -1158,6 +1229,7 @@ ui.historyList.addEventListener('click', (event) => {
 });
 
 ui.saveReviewBtn.addEventListener('click', saveReview);
+if (ui.saveEntryBtn) ui.saveEntryBtn.addEventListener('click', saveEntry);
 ui.saveByokBtn.addEventListener('click', saveByok);
 ui.removeByokBtn.addEventListener('click', removeByok);
 ui.upgradeProBtn.addEventListener('click', () => startCheckout('pro'));

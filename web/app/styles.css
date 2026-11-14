@@ -1,3 +1,9 @@
+h1,
+h2,
+h3 {
+  font-family: 'Fraunces', 'Inter', serif;
+}
+
 :root {
   color-scheme: light;
   --bg: #f7f7fb;
