@@ -1020,6 +1020,17 @@ async function bootstrap() {
   if (themeToggle) {
     themeToggle.addEventListener('click', toggleTheme);
   }
+  const sidebarToggle = document.getElementById('sidebarToggle');
+  const sidebar = document.querySelector('.sidebar');
+  if (sidebarToggle && sidebar) {
+    const stored = localStorage.getItem('praxis-sidebar-collapsed');
+    if (stored === 'true') sidebar.classList.add('collapsed');
+    sidebarToggle.addEventListener('click', () => {
+      sidebar.classList.toggle('collapsed');
+      localStorage.setItem('praxis-sidebar-collapsed', sidebar.classList.contains('collapsed'));
+      sidebarToggle.textContent = sidebar.classList.contains('collapsed') ? '▶' : '◀';
+    });
+  }
   const hash = readHash();
   await ensureCsrf();
 
@@ -1211,11 +1222,13 @@ bootstrap();
 
 async function checkGoogleOAuth() {
   try {
-    const data = await fetch('/api/auth/google/status', { credentials: 'same-origin' }).then((r) =>
-      r.json()
-    );
+    const res = await fetch('/api/auth/google/status', { credentials: 'same-origin' });
+    const data = await res.json().catch(() => ({ configured: true }));
     const btn = document.getElementById('googleLoginBtn');
     if (btn) btn.hidden = !data.configured;
-  } catch (_error) {}
+  } catch (_error) {
+    const btn = document.getElementById('googleLoginBtn');
+    if (btn) btn.hidden = false;
+  }
 }
 checkGoogleOAuth();

@@ -116,6 +116,7 @@
               </svg>
               <span>PRAXIS</span>
             </a>
+            <button id="sidebarToggle" class="sidebar-toggle" type="button" aria-label="Recolher menu">◀</button>
             <button id="themeToggle" class="theme-toggle" type="button" aria-label="Alternar tema">
               <span class="theme-toggle-icon" aria-hidden="true">◐</span>
               <span class="theme-toggle-label">Tema</span>
@@ -124,16 +125,16 @@
           <nav class="nav">
             <div class="nav-section">
               <span class="nav-label">Menu</span>
-              <a href="#/home" data-nav="home">Início</a>
-              <a href="#/history" data-nav="history">Histórico</a>
-              <a href="#/review" data-nav="review">Revisão Semanal</a>
-              <a href="#/account" data-nav="account">Conta</a>
-              <a href="#/admin" data-nav="admin" hidden>Admin</a>
+              <a href="#/home" data-nav="home"><span class="nav-icon">🏠</span><span class="nav-text">Início</span></a>
+              <a href="#/history" data-nav="history"><span class="nav-icon">📋</span><span class="nav-text">Histórico</span></a>
+              <a href="#/review" data-nav="review"><span class="nav-icon">📝</span><span class="nav-text">Revisão Semanal</span></a>
+              <a href="#/account" data-nav="account"><span class="nav-icon">👤</span><span class="nav-text">Conta</span></a>
+              <a href="#/admin" data-nav="admin" hidden><span class="nav-icon">⚙️</span><span class="nav-text">Admin</span></a>
             </div>
           </nav>
           <div class="user-box">
             <span id="userEmail" class="user-email"></span>
-            <button id="logoutBtn" class="button secondary small" type="button">Sair</button>
+            <button id="logoutBtn" class="button secondary small" type="button"><span class="nav-icon">🚪</span><span class="nav-text">Sair</span></button>
           </div>
         </aside>
 
